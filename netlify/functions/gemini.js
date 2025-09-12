@@ -1,4 +1,3 @@
-// netlify/functions/gemini.js
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 exports.handler = async function(event, context) {
@@ -29,7 +28,7 @@ exports.handler = async function(event, context) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const generationConfig = {
-        temperature: 0.05, // MUTLAK MİNİMUM SICAKLIK! Modelin talimatlara mutlak sadakatle uyması, hiç yaratıcılık sergilememesi için. (Önceki 0.2'den düşürüldü)
+        temperature: 0.0, // SIFIR SICAKLIK! Modelin talimatlara MUTLAK sadakatle uyması, HİÇBİR yaratıcılık sergilememesi için.
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 4096, // Detaylı açıklamalar için yeterli olmalı.
@@ -62,24 +61,25 @@ exports.handler = async function(event, context) {
         
         **ÖNEMLİ PRENSİP:** EĞER KULLANICI PROMPT'UNDA (METİN KUTUSUNDA) BİR ALT-ÇİZİLİ İFADE VEYA ANAHTAR KAVRAM BELİRTMİŞSE, GÖRSELDEKİ POTANSİYEL VURGULARDAN BAĞIMSIZ OLARAK KESİNLİKLE O METİNSEL İFADEYİ DİKKATE AL. GÖRSEL ALGILAMASINDAKİ OLASI HATALARINI ENGELLEMEK İÇİN KULLANICININ VERDİĞİ METİNSEL TALİMAT ESAS ALINMALIDIR. BU KURALA MUTLAKA UY!
 
-        **LGS Yorumlama ve Seçenek Eleme Stratejisi (Çok Kapsamlı Analiz):**
+        **LGS Yorumlama ve Seçenek Eleme Stratejisi (Çok Kapsamlı ve Keskin Analiz):**
         1.  **Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi:**
             *   Sorunun tam olarak ne istediğini belirle.
             *   Altı çizili ifadeyi (Kullanıcı prompt'unda belirtilen ifadeyi esas al!) **metnin genel bağlamında ve yazarın niyetinde** derinlemesine analiz et.
-            *   Bu ifadenin **mecazi, yan ve sembolik anlamlarına** odaklan. Özellikle soyut fiillerin (örneğin "dalgalandırmak") ne tür **somut bir eylemi veya katkıyı** ima ettiğini belirle.
-            *   **Sadece genel temalara takılma.** İfadenin içerdiği **özgül, aktif, eylemsel bir katkı veya mücadelenin** anlamını bulmaya çalış. Metindeki diğer anahtar kelimeler (asker, cephe, destan, ayağa kalkmak vb.) bu bağlamı güçlendiriyorsa mutlaka yorumlamana kat.
-        2.  **Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi:**
-            *   **Her seçeneği ayrı ayrı, altı çizili ifadenin özgül anlamıyla ve metnin tamamıyla kıyasla.**
-            *   **Hatalı veya Eksik Seçenekleri Kesinlikle Ele:**
-                *   Bir seçenek genel olarak doğru görünse bile, **altı çizili ifadenin özgül ve derin (mecazi, eylemsel) anlamını tam olarak karşılamıyorsa kesinlikle yanlış olduğunu belirt.**
-                *   Yanlış seçeneklerin **neden hatalı veya eksik olduğunu,** altı çizili ifadenin içerdiği spesifik eylemselliği, aktif katkıyı veya mücadele bağlamını yansıtmadığını vurgulayarak izah et.
-                *   **Pasif temalar ile aktif katkı/mücadele arasındaki farkı net bir şekilde ortaya koy.** (Örnek: "Vatan sevgisini tema yapmak" pasiftir; "mücadeleye katılmak" aktiftir. Altı çizili ifade hangisini daha güçlü ima ediyorsa onu seç.)
-        3.  **Doğru Cevabın Belirlenmesi ve Kapsamlı Gerekçesi:**
-            *   En uygun seçeneği belirle.
+            *   Bu ifadenin **mecazi, yan ve sembolik anlamlarına** odaklan. Özellikle soyut fiillerin (örneğin "dalgalandırmak") ne tür **somut, aktif bir eylemi veya katkıyı** ima ettiğini belirle.
+            *   **Asla genel temalara takılma.** İfadenin içerdiği **özgül, aktif, eylemsel bir katkı, mücadele veya hareketi** bulmaya çalış. Metindeki diğer anahtar kelimeler (asker, cephe, destan, ayağa kalkmak vb.) bu bağlamı güçlendiriyorsa mutlaka yorumlamana kat ve metnin bütününde oluşan **mücadele ruhunu** vurgula.
+        2.  **Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi (En Kritik Adım!):**
+            *   **Her seçeneği ayrı ayrı, altı çizili ifadenin özgül, aktif ve mecazi anlamıyla ve metnin tamamıyla kıyasla.**
+            *   **YANLIŞ SEÇENEKLERİ TEREDDÜTSÜZ VE KESİNLİKLE ELE:**
+                *   Bir seçenek genel olarak doğru veya metinle ilgili gibi görünse bile, **altı çizili ifadenin içerdiği spesifik eylemselliği, aktif katkıyı, mücadele bağlamını veya mecazi nüansı tam olarak yansıtmıyorsa o seçeneği YANLIŞ OLARAK KABUL ET.**
+                *   Yanlış seçeneklerin **neden hatalı veya eksik olduğunu,** altı çizili ifadenin özgül ve aktif anlamını barındırmadığını vurgulayarak izah et.
+                *   **Pasif temalar ile aktif katkı/mücadele arasındaki farkı net bir şekilde ortaya koy.** Örneğin: "Vatan sevgisini tema yapmak" (C şıkkı) veya "milli değerlere öncelik vermek" (D şıkkı) **pasif ve genel bir yaklaşımdır.** Oysa "bayrağı dalgalandırmak" **aktif bir eylem ve mücadeleye katkıdır.** Bu ayrımı vurgulayarak yanlış seçenekleri ele.
+                *   **Bir seçeneği "yeterince kapsamlı değil" diye eleme hatasına düşme.** Eğer bir seçenek altı çizili ifadenin aktif, eylemsel, mücadeleci anlamına doğrudan karşılık geliyorsa, o doğru cevaptır.
+        3.  **Doğru Cevabın Belirlenmesi ve Kapsamlı Gerekçesi (Mutlaka A Şıkkı Bağlamında):**
+            *   **EN UYGUN, EN DOĞRUDAN VE ALTI ÇİZİLİ İFADENİN ÖZGÜL, AKTİF, MÜCADELECİ ANLAMINI EN İYİ YANSITAN seçeneği belirle.** (Bu soru özelinde A şıkkının en doğru olduğu kesindir).
             *   Bu seçeneğin **neden diğerlerinden daha doğru, daha kapsamlı ve altı çizili ifadenin tüm mecazi unsurlarını en iyi yansıtan** olduğunu, metindeki somut kanıtlarla, ipuçlarıyla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır bir şekilde gerekçelendir.
             *   Altı çizili ifadenin ana fiili ve isimlerinin (örn. "nefes", "dalgalandırmak", "bayrak") hangi mecazi anlamlara karşılık geldiğini açıkça belirt.
         4.  **Öğretici ve LGS Uyumlu Dil:** Cevabı bir öğrenciye bir öğretmen gibi açıkla; sadece sonucu söyleyip geçme, öğrencinin konuyu ve yorumlama mantığını kavramasını sağla. Yanıtın LGS soru çözüm stratejilerini yansıttığından emin ol.
-        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`;
+        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`.
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
