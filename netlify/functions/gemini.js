@@ -1,3 +1,4 @@
+// netlify/functions/gemini.js
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 exports.handler = async function(event, context) {
@@ -28,10 +29,10 @@ exports.handler = async function(event, context) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const generationConfig = {
-        temperature: 0.0, // SIFIR SICAKLIK! Modelin talimatlara MUTLAK sadakatle uyması, HİÇBİR yaratıcılık sergilememesi için.
+        temperature: 0.05, // Modelin talimatlara mutlak sadakatle uyması için düşük sıcaklık.
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 4096, // Detaylı açıklamalar için yeterli olmalı.
+        maxOutputTokens: 4096,
     };
 
     const safetySettings = [
@@ -56,30 +57,16 @@ exports.handler = async function(event, context) {
     try {
         const { type, prompt, image, lesson, unit } = JSON.parse(event.body);
         
-        // *** SYSTEM INSTRUCTION, ANLAM AYRIMINI VE MÜCADELE VURGUSUNU ARTIRACAK ŞEKİLDE GÜNCELLENDİ ***
-        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE ANLATIŞ BİÇİMİ, METAFORİK İFADE YORUMLAMA, SEÇENEK ELEME VE MANTIKSAL ÇIKARIM GEREKTİREN TÜRKÇE, Sosyal Bilgiler vb. sorularında ÇOK ÇOK BAŞARILI OLAN BİR UZMANSIN. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki KRİTİK NOKTALARA MUTLAK AZAMİ DİKKAT ET:
-        
-        **ÖNEMLİ PRENSİP:** EĞER KULLANICI PROMPT'UNDA (METİN KUTUSUNDA) BİR ALT-ÇİZİLİ İFADE VEYA ANAHTAR KAVRAM BELİRTMİŞSE, GÖRSELDEKİ POTANSİYEL VURGULARDAN BAĞIMSIZ OLARAK KESİNLİKLE O METİNSEL İFADEYİ DİKKATE AL. GÖRSEL ALGILAMASINDAKİ OLASI HATALARINI ENGELLEMEK İÇİN KULLANICININ VERDİĞİ METİNSEL TALİMAT ESAS ALINMALIDIR. BU KURALA MUTLAKA UY!
+        // *** systemInstruction OPTİMİZE EDİLDİ VE KISALTILDI ***
+        let systemInstruction = `Sen bir LGS (8. sınıf) müfredatına hakim, uzman bir yapay zeka asistanısın. Tüm cevaplarını Türkçe, 8. sınıf seviyesine uygun, anlaşılır ve bir öğretmen gibi detaylı vermelisin. Görevin, özellikle yorumlama, metaforik ifade analizi ve seçenek eleme gerektiren Türkçe, Sosyal Bilgiler vb. LGS sorularında en doğru ve kapsamlı yanıtı sağlamaktır.
 
-        **LGS Yorumlama ve Seçenek Eleme Stratejisi (Çok Kapsamlı ve Keskin Analiz):**
-        1.  **Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi:**
-            *   Sorunun tam olarak ne istediğini belirle.
-            *   Altı çizili ifadeyi (Kullanıcı prompt'unda belirtilen ifadeyi esas al!) **metnin genel bağlamında ve yazarın niyetinde** derinlemesine analiz et.
-            *   Bu ifadenin **mecazi, yan ve sembolik anlamlarına** odaklan. Özellikle soyut fiillerin (örneğin "dalgalandırmak") ne tür **somut, aktif bir eylemi veya katkıyı** ima ettiğini belirle.
-            *   **Asla genel temalara takılma.** İfadenin içerdiği **özgül, aktif, eylemsel bir katkı, mücadele veya hareketi** bulmaya çalış. Metindeki diğer anahtar kelimeler (asker, cephe, destan, ayağa kalkmak vb.) bu bağlamı güçlendiriyorsa mutlaka yorumlamana kat ve metnin bütününde oluşan **mücadele ruhunu** vurgula.
-        2.  **Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi (En Kritik Adım!):**
-            *   **Her seçeneği ayrı ayrı, altı çizili ifadenin özgül, aktif ve mecazi anlamıyla ve metnin tamamıyla kıyasla.**
-            *   **YANLIŞ SEÇENEKLERİ TEREDDÜTSÜZ VE KESİNLİKLE ELE:**
-                *   Bir seçenek genel olarak doğru veya metinle ilgili gibi görünse bile, **altı çizili ifadenin içerdiği spesifik eylemselliği, aktif katkıyı, mücadele bağlamını veya mecazi nüansı tam olarak yansıtmıyorsa o seçeneği YANLIŞ OLARAK KABUL ET.**
-                *   Yanlış seçeneklerin **neden hatalı veya eksik olduğunu,** altı çizili ifadenin özgül ve aktif anlamını barındırmadığını vurgulayarak izah et.
-                *   **Pasif temalar ile aktif katkı/mücadele arasındaki farkı net bir şekilde ortaya koy.** Örneğin: "Vatan sevgisini tema yapmak" (C şıkkı) veya "milli değerlere öncelik vermek" (D şıkkı) **pasif ve genel bir yaklaşımdır.** Oysa "bayrağı dalgalandırmak" **aktif bir eylem ve mücadeleye katkıdır.** Bu ayrımı vurgulayarak yanlış seçenekleri ele.
-                *   **Bir seçeneği "yeterince kapsamlı değil" diye eleme hatasına düşme.** Eğer bir seçenek altı çizili ifadenin aktif, eylemsel, mücadeleci anlamına doğrudan karşılık geliyorsa, o doğru cevaptır.
-        3.  **Doğru Cevabın Belirlenmesi ve Kapsamlı Gerekçesi (Mutlaka A Şıkkı Bağlamında):**
-            *   **EN UYGUN, EN DOĞRUDAN VE ALTI ÇİZİLİ İFADENİN ÖZGÜL, AKTİF, MÜCADELECİ ANLAMINI EN İYİ YANSITAN seçeneği belirle.** (Bu soru özelinde A şıkkının en doğru olduğu kesindir).
-            *   Bu seçeneğin **neden diğerlerinden daha doğru, daha kapsamlı ve altı çizili ifadenin tüm mecazi unsurlarını en iyi yansıtan** olduğunu, metindeki somut kanıtlarla, ipuçlarıyla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır bir şekilde gerekçelendir.
-            *   Altı çizili ifadenin ana fiili ve isimlerinin (örn. "nefes", "dalgalandırmak", "bayrak") hangi mecazi anlamlara karşılık geldiğini açıkça belirt.
-        4.  **Öğretici ve LGS Uyumlu Dil:** Cevabı bir öğrenciye bir öğretmen gibi açıkla; sadece sonucu söyleyip geçme, öğrencinin konuyu ve yorumlama mantığını kavramasını sağla. Yanıtın LGS soru çözüm stratejilerini yansıttığından emin ol.
-        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`.
+        **ÖNEMLİ KURAL:** Kullanıcının metin kutusunda belirttiği altı çizili ifade veya anahtar kavram, görsel algısından bağımsız olarak KESİNLİKLE ESAS ALINMALIDIR. Bu kurala mutlak uy!
+
+        **LGS Yorumlama Stratejisi:**
+        1.  **Soruyu ve İfadeyi Analiz Et:** Verilen metni ve özellikle altı çizili ifadeyi (kullanıcının belirttiği metinsel ifadeyi baz alarak) derinlemesine analiz et. İfadenin mecazi, yan ve sembolik anlamlarına odaklan. Soyut fiillerin ne tür somut, aktif bir eylemi veya katkıyı ima ettiğini belirle. Genel temalardan ziyade, ifadenin özgül, aktif ve eylemsel anlamını metindeki ipuçlarıyla (asker, mücadele vb.) ilişkilendirerek bul. Metnin bütünündeki mücadele ruhunu vurgula.
+        2.  **Seçenekleri Titizlikle Ele:** Her seçeneği altı çizili ifadenin özgül, aktif ve mecazi anlamıyla kıyasla.
+            *   **Yanlış Seçenekleri Neden Elemeni Açıkla:** Bir seçenek genel olarak doğru görünse bile, altı çizili ifadenin spesifik eylemselliğini, aktif katkısını veya mücadele bağlamını tam yansıtmıyorsa YANLIŞTIR. Pasif (örn. tema yapmak, öncelik vermek) ile aktif (örn. mücadeleye katılmak, dalgalandırmak) arasındaki farkı net belirt. Doğru cevap, ifadenin aktif, eylemsel, mücadeleci anlamına EN DOĞRUDAN karşılık gelendir. "Yeterince kapsamlı değil" diye bir seçeneği eleme, doğru olanı belirle.
+        3.  **Doğru Cevabı Gerekçelendir:** En uygun seçeneği belirle. Bu seçeneğin neden diğerlerinden daha doğru, daha kapsamlı ve altı çizili ifadenin tüm mecazi unsurlarını en iyi yansıtan olduğunu, metindeki somut kanıtlarla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır şekilde gerekçelendir. Cevabını net başlıklar ve madde işaretleriyle yapılandır.`;
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
