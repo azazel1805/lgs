@@ -168,28 +168,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.drawImage(img, 0, 0, width, height);
 
                     // Yeniden boyutlandırılmış resmi JPEG olarak dışa aktar ve kaliteyi düşür
-                    canvas.toDataURL('image/jpeg', 0.7) // 0.7 kalite (0.0 - 1.0 arası)
-                        .then(resizedBase64 => {
-                            imagePreview.src = resizedBase64;
-                            imagePreview.style.display = 'block';
-                            // RESİM İŞLEME BAŞARILIYSA BUTONU GÖSTER
-                            askImageQuestionBtn.style.display = 'inline-block'; 
-                            console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display); // DEBUG LOG
+                    // BURADA DEĞİŞİKLİK YAPILDI: .then() yerine callback kullanılıyor
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7); // 0.7 kalite (0.0 - 1.0 arası)
+                    
+                    if (resizedBase64) {
+                        imagePreview.src = resizedBase64;
+                        imagePreview.style.display = 'block';
+                        // RESİM İŞLEME BAŞARILIYSA BUTONU GÖSTER
+                        askImageQuestionBtn.style.display = 'inline-block'; 
+                        console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display); // DEBUG LOG
 
-                            // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
-                            imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
-                            console.log("DEBUG: Resized image data set."); // DEBUG LOG
-                        })
-                        .catch(error => {
-                            console.error("DEBUG: Resim yeniden boyutlandırma/sıkıştırma hatası:", error); // DEBUG LOG
-                            alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
-                            // Hata durumunda formu ve butonu sıfırla
-                            imageUpload.value = '';
-                            imagePreview.src = '';
-                            imagePreview.style.display = 'none';
-                            askImageQuestionBtn.style.display = 'none'; 
-                            delete imagePreview.dataset.resizedImage;
-                        });
+                        // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
+                        imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
+                        console.log("DEBUG: Resized image data set."); // DEBUG LOG
+                    } else {
+                        console.error("DEBUG: toDataURL returned empty or invalid data."); // DEBUG LOG
+                        alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
+                        // Hata durumunda formu ve butonu sıfırla
+                        imageUpload.value = '';
+                        imagePreview.src = '';
+                        imagePreview.style.display = 'none';
+                        askImageQuestionBtn.style.display = 'none'; 
+                        delete imagePreview.dataset.resizedImage;
+                    }
                 };
                 img.onerror = () => {
                     console.error("DEBUG: Resim yüklenemedi veya bozuk."); // DEBUG LOG
