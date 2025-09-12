@@ -1,0 +1,9 @@
+[build]
+  command = "echo 'No build command needed for vanilla JS'"
+  publish = "/" # index.html ve diğer statik dosyaların bulunduğu dizin
+  functions = "netlify/functions" # Sunucusuz fonksiyonlarınızın bulunduğu dizin
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

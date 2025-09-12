@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGS AI Asistanı</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- Google Fonts - Poppins (isteğe bağlı, daha iyi görünüm için) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><img src="https://img.icons8.com/plasticine/100/000000/graduation-cap.png" alt="LGS Logo" class="header-logo"> LGS AI Asistanı <span class="beta-tag">BETA</span></h1>
+            <p>8. Sınıf LGS müfredatına uygun, yapay zeka destekli çalışma arkadaşın.</p>
+        </header>
+
+        <main>
+            <section class="lesson-selection-area card">
+                <h2>Ders ve Konu Seçimi</h2>
+                <div class="select-group">
+                    <label for="lessonSelect">Ders Seçiniz:</label>
+                    <select id="lessonSelect">
+                        <option value="">-- Ders Seçiniz --</option>
+                    </select>
+                </div>
+                <div class="select-group" id="unitSelectGroup" style="display: none;">
+                    <label for="unitSelect">Konu Seçiniz:</label>
+                    <select id="unitSelect">
+                        <option value="">-- Konu Seçiniz --</option>
+                    </select>
+                </div>
+                <button id="getTopicExplanationBtn" class="primary-btn" style="display: none;">Konu Anlatımını Getir</button>
+                
+                <div id="topicExplanationOutput" class="output-area">
+                    <p class="placeholder">Yukarıdan bir ders ve konu seçerek detaylı anlatımını alabilirsiniz.</p>
+                </div>
+            </section>
+
+            <section class="ai-interaction-area card">
+                <h2>AI'a Soru Sor</h2>
+                <div class="question-input-group">
+                    <label for="questionInput">Metinle Soru Sor:</label>
+                    <textarea id="questionInput" placeholder="Sorunuzu buraya yazın veya bir konu seçerek detaylı açıklama isteyin..."></textarea>
+                    <button id="askTextQuestionBtn" class="primary-btn">Soru Sor</button>
+                </div>
+
+                <div class="image-input-group">
+                    <label for="imageUpload">Resimle Soru Sor:</label>
+                    <input type="file" id="imageUpload" accept="image/*" capture="camera">
+                    <img id="imagePreview" src="" alt="Resim Önizleme" style="display: none;">
+                    <button id="askImageQuestionBtn" class="primary-btn" style="display: none;">Resmi ve Soruyu Gönder</button>
+                    <div class="note">Not: Resimli sorular için metin kutusuna ekstra açıklama ekleyebilirsiniz.</div>
+                </div>
+
+                <div id="aiResponseOutput" class="output-area">
+                    <p class="placeholder">AI yanıtları burada belirecektir.</p>
+                </div>
+                <div id="loadingIndicator" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Cevap yükleniyor...</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; <span id="currentYear"></span> LGS AI Asistanı. Tüm hakları saklıdır.</p>
+            <p>LGS, 8. sınıf öğretim programları esas alınarak hazırlanmaktadır. Bilgiler referans amaçlıdır.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

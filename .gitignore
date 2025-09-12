@@ -1,0 +1,24 @@
+# Çevre değişkenleri dosyası - API anahtarlarını içerir, asla Git'e yüklenmemeli!
+.env
+
+# Netlify Fonksiyonları için Node.js bağımlılıkları klasörü
+/netlify/functions/node_modules/
+
+# Mac OS X işletim sistemi tarafından oluşturulan dosyalar
+.DS_Store
+
+# Windows işletim sistemi tarafından oluşturulan küçük resim önbellek dosyaları
+Thumbs.db
+
+# Log dosyaları (eğer uygulama tarafından oluşturulursa)
+*.log
+
+# Editör yedekleri ve geçici dosyalar
+*~
+*.swp
+.idea/ # WebStorm/IntelliJ gibi IDE'lerin oluşturduğu klasörler
+.vscode/ # VS Code ayarları (paylaşılmak istenmiyorsa)
+
+# Derleme veya build çıktıları (bu projede yok, ama genel olarak iyi bir uygulama)
+/dist/
+/build/
