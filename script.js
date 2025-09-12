@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         .then(resizedBase64 => {
                             imagePreview.src = resizedBase64;
                             imagePreview.style.display = 'block';
-                            askImageQuestionBtn.style.display = 'inline-block';
+                            // RESİM İŞLEME BAŞARILIYSA BUTONU GÖSTER
+                            askImageQuestionBtn.style.display = 'inline-block'; 
 
                             // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
                             imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
@@ -165,29 +166,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         .catch(error => {
                             console.error("Resim yeniden boyutlandırma/sıkıştırma hatası:", error);
                             alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
-                            // Hata durumunda formu sıfırla
+                            // Hata durumunda formu ve butonu sıfırla
                             imageUpload.value = '';
                             imagePreview.src = '';
                             imagePreview.style.display = 'none';
-                            askImageQuestionBtn.style.display = 'none';
+                            askImageQuestionBtn.style.display = 'none'; 
                             delete imagePreview.dataset.resizedImage;
                         });
                 };
                 img.onerror = () => {
                     console.error("Resim yüklenemedi veya bozuk.");
                     alert("Yüklenen resim geçersiz veya bozuk. Lütfen başka bir resim deneyin.");
+                    // Hata durumunda formu ve butonu sıfırla
                     imageUpload.value = '';
                     imagePreview.src = '';
                     imagePreview.style.display = 'none';
-                    askImageQuestionBtn.style.display = 'none';
+                    askImageQuestionBtn.style.display = 'none'; 
                     delete imagePreview.dataset.resizedImage;
                 };
             };
             reader.readAsDataURL(file);
         } else {
+            // Dosya seçimi iptal edildiğinde veya dosya yoksa her şeyi sıfırla
             imagePreview.src = '';
             imagePreview.style.display = 'none';
-            askImageQuestionBtn.style.display = 'none';
+            askImageQuestionBtn.style.display = 'none'; 
             delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
         }
     });
@@ -242,9 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (e) {
                     // JSON değilse veya bozuksa, ham metni al
                     const rawErrorText = await response.text();
-                    throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil: ${rawErrorText.substring(0, 200)}...`);
+                    throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk: ${rawErrorText.substring(0, 200)}...`);
                 }
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                // Hata verisi içinde 'error' alanı yoksa genel bir mesaj kullan
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status} - ${response.statusText}`);
             }
 
             const data = await response.json();
