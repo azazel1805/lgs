@@ -121,15 +121,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resim yüklendiğinde önizleme yap ve yeniden boyutlandır/sıkıştır
     imageUpload.addEventListener('change', (event) => {
         const file = event.target.files[0];
+        console.log("DEBUG: Image upload change event triggered. File:", file ? file.name : "No file"); // DEBUG LOG
+        
+        // Hata durumlarını ve boş seçimi yönetmek için tüm elementleri varsayılan olarak gizle
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+        askImageQuestionBtn.style.display = 'none'; 
+        delete imagePreview.dataset.resizedImage; // Önceki veriyi temizle
+
         if (file) {
+            // "Cevap" metninin resim yüklendiğinde görünmesi sorununu geçici olarak çözmek için
+            // aiResponseOutput.innerHTML'i temizliyoruz. Bu, geçici bir çözümdür,
+            // asıl neden Netlify Functions loglarından gelmelidir.
+            aiResponseOutput.innerHTML = '<p class="placeholder">AI yanıtları burada belirecektir.</p>';
+            
             const MAX_SIZE = 1024; // Maksimum genişlik veya yükseklik (piksel)
             const reader = new FileReader();
 
             reader.onload = (e) => {
                 const img = new Image();
                 img.src = e.target.result;
+                console.log("DEBUG: Image reader loaded. Image src set."); // DEBUG LOG
 
                 img.onload = () => {
+                    console.log("DEBUG: Image object loaded. Starting canvas resize."); // DEBUG LOG
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
@@ -159,12 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             imagePreview.style.display = 'block';
                             // RESİM İŞLEME BAŞARILIYSA BUTONU GÖSTER
                             askImageQuestionBtn.style.display = 'inline-block'; 
+                            console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display); // DEBUG LOG
 
                             // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
                             imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
+                            console.log("DEBUG: Resized image data set."); // DEBUG LOG
                         })
                         .catch(error => {
-                            console.error("Resim yeniden boyutlandırma/sıkıştırma hatası:", error);
+                            console.error("DEBUG: Resim yeniden boyutlandırma/sıkıştırma hatası:", error); // DEBUG LOG
                             alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
                             // Hata durumunda formu ve butonu sıfırla
                             imageUpload.value = '';
@@ -175,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                 };
                 img.onerror = () => {
-                    console.error("Resim yüklenemedi veya bozuk.");
+                    console.error("DEBUG: Resim yüklenemedi veya bozuk."); // DEBUG LOG
                     alert("Yüklenen resim geçersiz veya bozuk. Lütfen başka bir resim deneyin.");
                     // Hata durumunda formu ve butonu sıfırla
                     imageUpload.value = '';
@@ -187,21 +204,22 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         } else {
-            // Dosya seçimi iptal edildiğinde veya dosya yoksa her şeyi sıfırla
-            imagePreview.src = '';
-            imagePreview.style.display = 'none';
-            askImageQuestionBtn.style.display = 'none'; 
-            delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
+            console.log("DEBUG: No file selected or selection cancelled. All elements hidden."); // DEBUG LOG
         }
     });
 
     // Resimle soru sor butonuna tıklama olayı
     askImageQuestionBtn.addEventListener('click', async () => {
+        console.log("DEBUG: Ask Image Question button clicked."); // DEBUG LOG
         // Önizleme elementinde sakladığımız yeniden boyutlandırılmış Base64 string'ini alıyoruz
         const resizedBase64 = imagePreview.dataset.resizedImage; 
         const question = questionInput.value.trim(); 
+        console.log("DEBUG: Resized Base64 data present:", !!resizedBase64); // DEBUG LOG
+        console.log("DEBUG: Question input for image:", question); // DEBUG LOG
+
 
         if (resizedBase64) {
+            console.log("DEBUG: Calling getGeminiResponse for image."); // DEBUG LOG
             await getGeminiResponse({
                 type: 'image',
                 prompt: question,
@@ -217,8 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
             imagePreview.style.display = 'none';
             askImageQuestionBtn.style.display = 'none';
             delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
+            console.log("DEBUG: Image question sent, form reset."); // DEBUG LOG
         } else {
             alert('Lütfen önce bir resim yükleyiniz.');
+            console.log("DEBUG: Alert: No resized image data found before sending."); // DEBUG LOG
         }
     });
 
@@ -227,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         outputElement.innerHTML = '';
         loadingIndicator.style.display = 'flex';
         disableControls(true);
+        console.log("DEBUG: Sending request to Netlify Function with payload:", payload); // DEBUG LOG
 
         try {
             const response = await fetch('/.netlify/functions/gemini', {
@@ -236,15 +257,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(payload),
             });
+            console.log("DEBUG: Response received from Netlify Function. Status:", response.status); // DEBUG LOG
 
             // Hata yanıtının JSON olup olmadığını kontrol et
             if (!response.ok) {
                 let errorData;
                 try {
                     errorData = await response.json(); // JSON yanıtı almaya çalış
+                    console.log("DEBUG: Error response data (JSON):", errorData); // DEBUG LOG
                 } catch (e) {
                     // JSON değilse veya bozuksa, ham metni al
                     const rawErrorText = await response.text();
+                    console.error("DEBUG: Failed to parse error response as JSON. Raw text:", rawErrorText.substring(0, 200) + "..."); // DEBUG LOG
                     throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk: ${rawErrorText.substring(0, 200)}...`);
                 }
                 // Hata verisi içinde 'error' alanı yoksa genel bir mesaj kullan
@@ -252,19 +276,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
+            console.log("DEBUG: Successful response data:", data); // DEBUG LOG
             if (data.error) {
                 outputElement.innerHTML = `<p class="error-message">Hata: ${data.error}</p>`;
             } else {
-                // Yanıtı Markdown olarak işleyebiliriz, ancak basit p etiketi yeterli olabilir
-                // Eğer Markdown desteği eklemek isterseniz burada bir kütüphane kullanmalısınız.
                 outputElement.innerHTML = `<p>${data.response}</p>`;
             }
         } catch (error) {
-            console.error('API isteği başarısız oldu:', error);
+            console.error('DEBUG: API isteği başarısız oldu:', error); // DEBUG LOG
             outputElement.innerHTML = `<p class="error-message">Bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.</p>`;
         } finally {
             loadingIndicator.style.display = 'none';
             disableControls(false);
+            console.log("DEBUG: Request finished. Controls enabled."); // DEBUG LOG
         }
     }
 
