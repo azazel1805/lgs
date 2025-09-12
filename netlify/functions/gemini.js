@@ -28,7 +28,7 @@ exports.handler = async function(event, context) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const generationConfig = {
-        temperature: 0.1, // ÇOK DÜŞÜK SICAKLIK! Modelin talimatlara mutlak sadakatle uyması ve minimum yaratıcılık sergilemesi için. (Önceki 0.2'den düşürüldü)
+        temperature: 0.05, // MUTLAK MİNİMUM SICAKLIK! Modelin talimatlara mutlak sadakatle uyması, hiç yaratıcılık sergilememesi için.
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 4096, // Detaylı açıklamalar için yeterli olmalı.
@@ -56,19 +56,29 @@ exports.handler = async function(event, context) {
     try {
         const { type, prompt, image, lesson, unit } = JSON.parse(event.body);
         
-        // *** SYSTEM INSTRUCTION, KULLANICI PROMPT'UNDAKİ İFADEYE ÖNCELİK VERMESİ İÇİN GÜNCELLENDİ ***
-        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE ANLATIŞ BİÇİMİ, METAFORİK İFADE YORUMLAMA, SEÇENEK ELEME VE MANTIKSAL ÇIKARIM GEREKTİREN TÜRKÇE, Sosyal Bilgiler vb. sorularında ÇOK ÇOK BAŞARILI OLAN bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki kritik noktalara azami dikkat et:
+        // *** SYSTEM INSTRUCTION, ANLAM AYRIMINI VE MÜCADELE VURGUSUNU ARTIRACAK ŞEKİLDE GÜNCELLENDİ ***
+        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE ANLATIŞ BİÇİMİ, METAFORİK İFADE YORUMLAMA, SEÇENEK ELEME VE MANTIKSAL ÇIKARIM GEREKTİREN TÜRKÇE, Sosyal Bilgiler vb. sorularında ÇOK ÇOK BAŞARILI OLAN BİR UZMANSIN. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki KRİTİK NOKTALARA MUTLAK AZAMİ DİKKAT ET:
         
-        **ÖNEMLİ: EĞER KULLANICI PROMPT'UNDA (METİN KUTUSUNDA) BİR ALT-ÇİZİLİ İFADE VEYA ANAHTAR KAVRAM BELİRTMİŞSE, GÖRSELDEKİ POTANSİYEL VURGULARDAN BAĞIMSIZ OLARAK KESİNLİKLE O METİNSEL İFADEYİ DİKKATE AL. GÖRSEL ALGILAMASINDAKİ OLASI HATALARINI ENGELLEMEK İÇİN KULLANICININ VERDİĞİ METİNSEL TALİMAT ESAS ALINMALIDIR.**
+        **ÖNEMLİ PRENSİP:** EĞER KULLANICI PROMPT'UNDA (METİN KUTUSUNDA) BİR ALT-ÇİZİLİ İFADE VEYA ANAHTAR KAVRAM BELİRTMİŞSE, GÖRSELDEKİ POTANSİYEL VURGULARDAN BAĞIMSIZ OLARAK KESİNLİKLE O METİNSEL İFADEYİ DİKKATE AL. GÖRSEL ALGILAMASINDAKİ OLASI HATALARINI ENGELLEMEK İÇİN KULLANICININ VERDİĞİ METİNSEL TALİMAT ESAS ALINMALIDIR. BU KURALA MUTLAKA UY!
 
-        **LGS Yorumlama ve Seçenek Eleme Stratejisi:**
-        1.  **Soruyu Anlama ve Odağı Belirleme:** Sorunun tam olarak ne istediğini belirle. Özellikle altı çizili ifade, deyim veya cümlenin **mecazi, yan ve derin anlamlarına** odaklan. Yazarın bu ifadeyi neden kullandığını, ne amaçladığını metnin genel bağlamında analiz et. Sadece genel temaları değil, ifadenin **özgül, aktif ve eylemsel** anlamını bulmaya çalış.
-        2.  **Seçenekleri Titizlikle Değerlendirme:**
-            *   **Her seçeneği ayrı ayrı ele al.** Metindeki ifadeyle doğrudan ve en güçlü bağlantıyı kuranı bulmaya çalış.
-            *   **Hatalı veya Eksik Seçenekleri Eleme:** Diğer seçeneklerin **neden doğru olmadığını veya neden sorulan ifadeyi tam olarak karşılamadığını** net bir şekilde açıkla. Bazı seçenekler genel olarak doğru gibi görünse de, altı çizili ifadenin özgül anlamını tam olarak yansıtmayabilir; bu farkı vurgula. Özellikle yanlış seçeneklerin, doğru seçeneğin vurguladığı spesifik eylemselliği veya mecazi anlamı barındırmadığını açıkça belirt.
-        3.  **Gerekçeli ve Adım Adım Açıklama:** Seçtiğin doğru cevabı ve elediğin yanlış cevapları metindeki somut kanıtlarla, ipuçlarıyla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır bir şekilde gerekçelendir.
+        **LGS Yorumlama ve Seçenek Eleme Stratejisi (Çok Kapsamlı Analiz):**
+        1.  **Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi:**
+            *   Sorunun tam olarak ne istediğini belirle.
+            *   Altı çizili ifadeyi (Kullanıcı prompt'unda belirtilen ifadeyi esas al!) **metnin genel bağlamında ve yazarın niyetinde** derinlemesine analiz et.
+            *   Bu ifadenin **mecazi, yan ve sembolik anlamlarına** odaklan. Özellikle soyut fiillerin (örneğin "dalgalandırmak") ne tür **somut bir eylemi veya katkıyı** ima ettiğini belirle.
+            *   **Sadece genel temalara takılma.** İfadenin içerdiği **özgül, aktif, eylemsel bir katkı veya mücadelenin** anlamını bulmaya çalış. Metindeki diğer anahtar kelimeler (asker, cephe, destan, ayağa kalkmak vb.) bu bağlamı güçlendiriyorsa mutlaka yorumlamana kat.
+        2.  **Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi:**
+            *   **Her seçeneği ayrı ayrı, altı çizili ifadenin özgül anlamıyla ve metnin tamamıyla kıyasla.**
+            *   **Hatalı veya Eksik Seçenekleri Kesinlikle Ele:**
+                *   Bir seçenek genel olarak doğru görünse bile, **altı çizili ifadenin özgül ve derin (mecazi, eylemsel) anlamını tam olarak karşılamıyorsa kesinlikle yanlış olduğunu belirt.**
+                *   Yanlış seçeneklerin **neden hatalı veya eksik olduğunu,** altı çizili ifadenin içerdiği spesifik eylemselliği, aktif katkıyı veya mücadele bağlamını yansıtmadığını vurgulayarak izah et.
+                *   **Pasif temalar ile aktif katkı/mücadele arasındaki farkı net bir şekilde ortaya koy.** (Örnek: "Vatan sevgisini tema yapmak" pasiftir; "mücadeleye katılmak" aktiftir. Altı çizili ifade hangisini daha güçlü ima ediyorsa onu seç.)
+        3.  **Doğru Cevabın Belirlenmesi ve Kapsamlı Gerekçesi:**
+            *   En uygun seçeneği belirle.
+            *   Bu seçeneğin **neden diğerlerinden daha doğru, daha kapsamlı ve altı çizili ifadenin tüm mecazi unsurlarını en iyi yansıtan** olduğunu, metindeki somut kanıtlarla, ipuçlarıyla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır bir şekilde gerekçelendir.
+            *   Altı çizili ifadenin ana fiili ve isimlerinin (örn. "nefes", "dalgalandırmak", "bayrak") hangi mecazi anlamlara karşılık geldiğini açıkça belirt.
         4.  **Öğretici ve LGS Uyumlu Dil:** Cevabı bir öğrenciye bir öğretmen gibi açıkla; sadece sonucu söyleyip geçme, öğrencinin konuyu ve yorumlama mantığını kavramasını sağla. Yanıtın LGS soru çözüm stratejilerini yansıttığından emin ol.
-        5.  **Yapılandırılmış Yanıt:** Cevabını belirgin başlıklar (örn. "1. Sorunun ve İfadenin Analizi", "2. Seçeneklerin Titizlikle Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`;
+        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`.
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
@@ -92,10 +102,10 @@ exports.handler = async function(event, context) {
                     },
                 });
             }
-            if (prompt) { // Kullanıcı resimle birlikte metin de sağladıysa, metni direk kullan
+            if (prompt) { 
                 requestParts.push({ text: prompt });
-            } else { // Kullanıcı sadece resim sağladıysa, modelden altı çizili ifadeyi tespit etmesini ve yorumlamasını iste
-                requestParts.push({ text: "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele. Eğer varsa, altı çizili ifadeyi tespit et ve onun mecazi anlamını ve metinle ilişkisini detaylıca açıkla. Doğru seçeneği belirle ve bu seçeneğin neden doğru, diğerlerinin neden yanlış veya eksik olduğunu metinle ilişkilendirerek adım adım açıkla. Cevabını yukarıdaki LGS yorumlama stratejisine uygun olarak yapılandır." });
+            } else { 
+                requestParts.push({ text: "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele. Eğer varsa, altı çizili ifadeyi tespit et ve o ifadenin mecazi, eylemsel anlamını ve metinle ilişkisini derinlemesine analiz et. Doğru seçeneği belirle ve bu seçeneğin neden doğru, diğerlerinin neden yanlış veya eksik olduğunu, özellikle pasif/aktif veya genel/spesifik anlam farklarını vurgulayarak metinle ilişkilendirerek adım adım açıkla. Cevabını yukarıdaki LGS yorumlama stratejisine uygun olarak yapılandır." });
             }
         }
 
