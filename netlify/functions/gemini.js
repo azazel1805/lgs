@@ -27,12 +27,11 @@ exports.handler = async function(event, context) {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-    // *** GENERATION CONFIG AYARLARI GÜNCELLENDİ ***
     const generationConfig = {
-        temperature: 0.4, // Daha düşük sıcaklık, daha odaklı ve mantıksal yanıtlar için
+        temperature: 0.3, // Daha da düşük sıcaklık, daha az yaratıcılık, daha yüksek doğruluk ve kesinlik için. (Önceki 0.4'ten düşürüldü)
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 4096, // Daha uzun, detaylı yorumlar için token limitini artırdık
+        maxOutputTokens: 4096, // Detaylı açıklamalar için yeterli olmalı.
     };
 
     const safetySettings = [
@@ -57,14 +56,17 @@ exports.handler = async function(event, context) {
     try {
         const { type, prompt, image, lesson, unit } = JSON.parse(event.body);
         
-        // *** SYSTEM INSTRUCTION GÜNCELLENDİ ***
-        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE YORUMLAMA, ANALİZ VE ÇIKARIM YAPMA gerektiren sorularda başarılı olan bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki noktalara dikkat et:
-        - Sadece bilgi vermekle kalma, verilen metin, görsel veya bilgi parçacığını DERİNLEMESİNE ANALİZ ET.
-        - Neden-sonuç ilişkileri kur, çıkarımlar yap ve bu çıkarımları GEREKÇELERİYLE AÇIKLA.
-        - Cevabın neden doğru olduğunu veya neden belirli bir sonucun çıkarılabileceğini adım adım göster.
-        - Madde işaretleri veya numaralandırılmış listeler kullanarak bilgiyi yapılandır ve açıklayıcı ol.
-        - LGS soru tiplerine (özellikle yorumlama ve analiz sorularına) uygun bir dil ve yaklaşım sergile.
-        - Bir öğretmen gibi açıkla, sadece sonucu söyleyip geçme.`;
+        // *** SYSTEM INSTRUCTION ÇOK DAHA GÜÇLÜ BİR ŞEKİLDE GÜNCELLENDİ ***
+        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE METAFORİK ANLAMLARI YORUMLAMA, BAĞLAMSAL ANALİZ VE MANTIKSAL ÇIKARIM YAPMA GEREKTİREN TÜRKÇE, Sosyal Bilgiler vb. sorularında çok başarılı olan bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki kritik noktalara azami dikkat et:
+        1.  **Metin ve Bağlam Analizi:** Verilen metin, görsel veya bilgi parçacığını DERİNLEMESİNE ANALİZ ET ve sorunun bağlamını (LGS 8. sınıf) tam olarak anla.
+        2.  **Metaforik Yorumlama:** Özellikle altı çizili ifadeler veya deyimler için, **sadece yüzeydeki anlamıyla kalma, mecazi ve yan anlamlarını metnin geneline ve yazarın niyetine göre derinlemesine yorumla.** Soyut ifadeleri somut eylemlerle ilişkilendir.
+        3.  **Gerekçeli Çıkarım:** Neden-sonuç ilişkileri kur, mantıksal çıkarımlar yap ve bu çıkarımları metindeki SOMUT KANITLARLA ve GEREKÇELERİYLE, ADIM ADIM, AÇIK VE ANLAŞILIR BİR ŞEKİLDE AÇIKLA.
+        4.  **Seçenek Değerlendirmesi:**
+            *   **Doğru Seçeneği Belirle:** En uygun seçeneği tespit et.
+            *   **Neden Doğru?:** Bu seçeneğin neden doğru olduğunu, altı çizili ifadenin tüm unsurlarıyla (örneğin "nefes" neyi temsil ediyor, "dalgalandırmak" ne anlama geliyor) ve metindeki diğer destekleyici ifadelerle bağlantı kurarak detaylıca açıkla.
+            *   **Neden Yanlış?:** Diğer yanlış seçeneklerin **neden hatalı veya eksik olduğunu,** metinle ilişkilendirerek izah et. Yanlış seçeneklerin modelin genel temayla uyumlu görünse bile neden sorulan spesifik altı çizili ifadeyi tam olarak karşılamadığını açıkla.
+        5.  **Öğretici Dil:** Cevabı bir öğrenciye bir öğretmen gibi açıkla; sadece sonucu söyleyip geçme, öğrencinin konuyu ve yorumlama mantığını kavramasını sağla.
+        6.  **Yapılandırılmış Yanıt:** Madde işaretleri veya numaralandırılmış listeler kullanarak bilgiyi yapılandır, açık ve okunaklı ol.`;
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
@@ -88,10 +90,10 @@ exports.handler = async function(event, context) {
                     },
                 });
             }
-            if (prompt) { // Kullanıcı resimle birlikte metin de sağladıysa
+            if (prompt) { 
                 requestParts.push({ text: prompt });
-            } else { // Kullanıcı sadece resim sağladıysa, yorumlama talimatını ekle
-                requestParts.push({ text: "Bu resimdeki ana fikri, konuyu veya durumu LGS 8. sınıf müfredatı kapsamında analiz edip yorumlar mısın? Detaylı bir açıklama ve varsa çıkarımlar bekliyorum." });
+            } else { 
+                requestParts.push({ text: "Bu resimdeki ana fikri, konuyu veya durumu LGS 8. sınıf müfredatı kapsamında analiz edip yorumlar mısın? Altı çizili ifade varsa, onun mecazi anlamını ve metinle ilişkisini detaylıca açıkla. Doğru seçeneği ve nedenlerini göster." });
             }
         }
 
