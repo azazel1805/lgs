@@ -19,15 +19,15 @@ exports.handler = async function(event, context) {
     }
 
     if (!GEMINI_API_KEY) {
+        console.error("Gemini API anahtarı bulunamadı.");
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Gemini API anahtarı bulunamadı. Lütfen Netlify ortam değişkenlerinde GEMINI_API_KEY'i ayarlayın." }),
+            body: JSON.stringify({ error: "Sunucu yapılandırma hatası: Gemini API anahtarı eksik." }),
         };
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-    const visionModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // Vision için de aynı model kullanılabilir.
 
     // Güvenlik ayarları (isteğe bağlı ama önerilir)
     const generationConfig = {
@@ -58,7 +58,6 @@ exports.handler = async function(event, context) {
 
     try {
         const { type, prompt, image, lesson, unit } = JSON.parse(event.body);
-        let textResponse = '';
         let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı ve detaylı bilgi veren bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Mümkünse madde işaretleri veya numaralandırılmış listeler kullanarak bilgiyi yapılandır.`;
 
         if (lesson && unit) {
@@ -76,9 +75,10 @@ exports.handler = async function(event, context) {
             requestParts.push({ text: prompt });
         } else if (type === 'image') {
             if (image) {
+                // Frontend'de resmi JPEG'e dönüştürdüğümüz için mimeType'ı kesin olarak image/jpeg olarak belirliyoruz.
                 requestParts.push({
                     inlineData: {
-                        mimeType: "image/jpeg", // Varsayılan olarak jpeg kabul edelim, img input accept="image/*"
+                        mimeType: "image/jpeg", 
                         data: image,
                     },
                 });
@@ -86,8 +86,16 @@ exports.handler = async function(event, context) {
             if (prompt) {
                 requestParts.push({ text: prompt });
             } else {
-                requestParts.push({ text: "Bu resimde ne var veya resimdeki konuyu LGS 8. sınıf müfredatı kapsamında açıklar mısın?" });
+                requestParts.push({ text: "Bu resimde ne var veya resimdeki konuyu LGS 8. sınıf müfredatı kapsamında açıklar mısın? Detaylı bir açıklama bekliyorum." });
             }
+        }
+
+        if (requestParts.length === 0) {
+            return {
+                statusCode: 400,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ error: "Geçersiz istek: Boş içerik gönderildi. Lütfen metin veya resim sağlayın." }),
+            };
         }
 
         const result = await model.generateContent({
@@ -102,21 +110,31 @@ exports.handler = async function(event, context) {
             }
         });
 
-        textResponse = result.response.text();
+        const responseContent = result.response.text();
 
         return {
             statusCode: 200,
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ response: textResponse }),
+            body: JSON.stringify({ response: responseContent }),
         };
 
     } catch (error) {
-        console.error('Gemini API hatası:', error);
+        console.error('Netlify Fonksiyonu veya Gemini API Hatası:', error);
+        // Hata detaylarını sadece geliştirme ortamında göstermek daha güvenlidir.
+        const errorMessage = `AI yanıtı alınırken bir sorun oluştu: ${error.message}`;
+        const errorDetails = process.env.NODE_ENV !== 'production' ? error.stack : undefined;
+
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: `AI yanıtı alınırken bir sorun oluştu: ${error.message}` }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ 
+                error: errorMessage,
+                details: errorDetails
+            }),
         };
     }
 };
