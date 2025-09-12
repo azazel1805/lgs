@@ -1,7 +1,8 @@
 [build]
-  command = "echo 'No build command needed for vanilla JS'"
-  publish = "/" # index.html ve diğer statik dosyaların bulunduğu dizin
-  functions = "netlify/functions" # Sunucusuz fonksiyonlarınızın bulunduğu dizin
+  # Build komutu şimdi npm install'ı çalıştıracak ve ardından diğer işleri halledecek.
+  command = "npm install && echo 'No frontend build command needed for vanilla JS'"
+  publish = "/"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/api/*"
