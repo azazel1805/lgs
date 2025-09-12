@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getTopicExplanationBtn = document.getElementById('getTopicExplanationBtn');
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
     const questionInput = document.getElementById('questionInput');
+    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // YENİ: Altı çizili ifade input'u
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
     const imageUpload = document.getElementById('imageUpload');
     const imagePreview = document.getElementById('imagePreview');
@@ -105,14 +106,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Metinle soru sor butonuna tıklama olayı
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
+        const underlinedPhrase = underlinedPhraseInput.value.trim(); // YENİ: Altı çizili ifadeyi al
+
         if (question) {
+            let fullPrompt = question;
+            if (underlinedPhrase) {
+                // Altı çizili ifadeyi prompt'un başına ekliyoruz, böylece AI öncelik verir.
+                fullPrompt = `[Kullanıcının belirttiği altı çizili ifade: "${underlinedPhrase}"]\n${question}`;
+            }
+
             await getGeminiResponse({
                 type: 'text',
-                prompt: question,
-                lesson: lessonSelect.value || null, // Bağlam için seçili dersi gönder
-                unit: unitSelect.value || null     // Bağlam için seçili üniteyi gönder
+                prompt: fullPrompt, // Oluşturulan prompt'u gönder
+                lesson: lessonSelect.value || null,
+                unit: unitSelect.value || null
             }, aiResponseOutput);
             questionInput.value = ''; // Input'u temizle
+            underlinedPhraseInput.value = ''; // YENİ: Altı çizili ifade input'unu da temizle
         } else {
             alert('Lütfen bir soru yazınız.');
         }
@@ -121,35 +131,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resim yüklendiğinde önizleme yap ve yeniden boyutlandır/sıkıştır
     imageUpload.addEventListener('change', (event) => {
         const file = event.target.files[0];
-        console.log("DEBUG: Image upload change event triggered. File:", file ? file.name : "No file"); // DEBUG LOG
+        console.log("DEBUG: Image upload change event triggered. File:", file ? file.name : "No file");
         
-        // Hata durumlarını ve boş seçimi yönetmek için tüm elementleri varsayılan olarak gizle
         imagePreview.src = '';
         imagePreview.style.display = 'none';
         askImageQuestionBtn.style.display = 'none'; 
-        delete imagePreview.dataset.resizedImage; // Önceki veriyi temizle
+        delete imagePreview.dataset.resizedImage;
 
         if (file) {
-            // "Cevap" metninin resim yüklendiğinde görünmesi sorununu geçici olarak çözmek için
-            // aiResponseOutput.innerHTML'i temizliyoruz. Bu, geçici bir çözümdür,
-            // asıl neden Netlify Functions loglarından gelmelidir.
             aiResponseOutput.innerHTML = '<p class="placeholder">AI yanıtları burada belirecektir.</p>';
             
-            const MAX_SIZE = 1024; // Maksimum genişlik veya yükseklik (piksel)
+            const MAX_SIZE = 1024;
             const reader = new FileReader();
 
             reader.onload = (e) => {
                 const img = new Image();
                 img.src = e.target.result;
-                console.log("DEBUG: Image reader loaded. Image src set."); // DEBUG LOG
+                console.log("DEBUG: Image reader loaded. Image src set.");
 
                 img.onload = () => {
-                    console.log("DEBUG: Image object loaded. Starting canvas resize."); // DEBUG LOG
+                    console.log("DEBUG: Image object loaded. Starting canvas resize.");
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
 
-                    // Resmi yeniden boyutlandırma
                     if (width > height) {
                         if (width > MAX_SIZE) {
                             height *= MAX_SIZE / width;
@@ -167,24 +172,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Yeniden boyutlandırılmış resmi JPEG olarak dışa aktar ve kaliteyi düşür
-                    // BURADA DEĞİŞİKLİK YAPILDI: .then() yerine callback kullanılıyor
-                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7); // 0.7 kalite (0.0 - 1.0 arası)
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     
                     if (resizedBase64) {
                         imagePreview.src = resizedBase64;
                         imagePreview.style.display = 'block';
-                        // RESİM İŞLEME BAŞARILIYSA BUTONU GÖSTER
                         askImageQuestionBtn.style.display = 'inline-block'; 
-                        console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display); // DEBUG LOG
+                        console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display);
 
-                        // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
-                        imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
-                        console.log("DEBUG: Resized image data set."); // DEBUG LOG
+                        imagePreview.dataset.resizedImage = resizedBase64.split(',')[1];
+                        console.log("DEBUG: Resized image data set.");
                     } else {
-                        console.error("DEBUG: toDataURL returned empty or invalid data."); // DEBUG LOG
+                        console.error("DEBUG: toDataURL returned empty or invalid data.");
                         alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
-                        // Hata durumunda formu ve butonu sıfırla
                         imageUpload.value = '';
                         imagePreview.src = '';
                         imagePreview.style.display = 'none';
@@ -193,9 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 img.onerror = () => {
-                    console.error("DEBUG: Resim yüklenemedi veya bozuk."); // DEBUG LOG
+                    console.error("DEBUG: Resim yüklenemedi veya bozuk.");
                     alert("Yüklenen resim geçersiz veya bozuk. Lütfen başka bir resim deneyin.");
-                    // Hata durumunda formu ve butonu sıfırla
                     imageUpload.value = '';
                     imagePreview.src = '';
                     imagePreview.style.display = 'none';
@@ -205,41 +204,51 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         } else {
-            console.log("DEBUG: No file selected or selection cancelled. All elements hidden."); // DEBUG LOG
+            console.log("DEBUG: No file selected or selection cancelled. All elements hidden.");
         }
     });
 
     // Resimle soru sor butonuna tıklama olayı
     askImageQuestionBtn.addEventListener('click', async () => {
-        console.log("DEBUG: Ask Image Question button clicked."); // DEBUG LOG
-        // Önizleme elementinde sakladığımız yeniden boyutlandırılmış Base64 string'ini alıyoruz
+        console.log("DEBUG: Ask Image Question button clicked.");
         const resizedBase64 = imagePreview.dataset.resizedImage; 
-        const question = questionInput.value.trim(); 
-        console.log("DEBUG: Resized Base64 data present:", !!resizedBase64); // DEBUG LOG
-        console.log("DEBUG: Question input for image:", question); // DEBUG LOG
+        const question = questionInput.value.trim();
+        const underlinedPhrase = underlinedPhraseInput.value.trim(); // YENİ: Altı çizili ifadeyi al
+        console.log("DEBUG: Resized Base64 data present:", !!resizedBase64);
+        console.log("DEBUG: Question input for image:", question);
+        console.log("DEBUG: Underlined phrase for image:", underlinedPhrase); // DEBUG LOG
 
 
         if (resizedBase64) {
-            console.log("DEBUG: Calling getGeminiResponse for image."); // DEBUG LOG
+            let fullPrompt = question;
+            if (underlinedPhrase) {
+                // Altı çizili ifadeyi prompt'un başına ekliyoruz, böylece AI öncelik verir.
+                fullPrompt = `[Kullanıcının belirttiği altı çizili ifade: "${underlinedPhrase}"]\n${question}`;
+            } else if (!question) {
+                // Sadece resim ve altı çizili ifade yoksa varsayılan bir prompt ver
+                fullPrompt = "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele. Eğer varsa, altı çizili ifadeyi tespit et ve o ifadenin mecazi, eylemsel anlamını ve metinle ilişkisini derinlemesine analiz et. Doğru seçeneği belirle ve bu seçeneğin neden doğru, diğerlerinin neden yanlış veya eksik olduğunu, özellikle pasif/aktif veya genel/spesifik anlam farklarını vurgulayarak metinle ilişkilendirerek adım adım açıkla. Cevabını yukarıdaki LGS yorumlama stratejisine uygun olarak yapılandır.";
+            }
+
+            console.log("DEBUG: Calling getGeminiResponse for image with fullPrompt:", fullPrompt);
             await getGeminiResponse({
                 type: 'image',
-                prompt: question,
-                image: resizedBase64, // Yeniden boyutlandırılmış ve sıkıştırılmış resmi gönder
+                prompt: fullPrompt, // Oluşturulan prompt'u gönder
+                image: resizedBase64,
                 lesson: lessonSelect.value || null,
                 unit: unitSelect.value || null
             }, aiResponseOutput);
 
-            // Başarılı gönderimden sonra formu temizle
             questionInput.value = ''; 
+            underlinedPhraseInput.value = ''; // YENİ: Altı çizili ifade input'unu da temizle
             imageUpload.value = ''; 
             imagePreview.src = '';
             imagePreview.style.display = 'none';
             askImageQuestionBtn.style.display = 'none';
-            delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
-            console.log("DEBUG: Image question sent, form reset."); // DEBUG LOG
+            delete imagePreview.dataset.resizedImage;
+            console.log("DEBUG: Image question sent, form reset.");
         } else {
             alert('Lütfen önce bir resim yükleyiniz.');
-            console.log("DEBUG: Alert: No resized image data found before sending."); // DEBUG LOG
+            console.log("DEBUG: Alert: No resized image data found before sending.");
         }
     });
 
@@ -248,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         outputElement.innerHTML = '';
         loadingIndicator.style.display = 'flex';
         disableControls(true);
-        console.log("DEBUG: Sending request to Netlify Function with payload:", payload); // DEBUG LOG
+        console.log("DEBUG: Sending request to Netlify Function with payload:", payload);
 
         try {
             const response = await fetch('/.netlify/functions/gemini', {
@@ -258,38 +267,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(payload),
             });
-            console.log("DEBUG: Response received from Netlify Function. Status:", response.status); // DEBUG LOG
+            console.log("DEBUG: Response received from Netlify Function. Status:", response.status);
 
-            // Hata yanıtının JSON olup olmadığını kontrol et
             if (!response.ok) {
                 let errorData;
                 try {
-                    errorData = await response.json(); // JSON yanıtı almaya çalış
-                    console.log("DEBUG: Error response data (JSON):", errorData); // DEBUG LOG
+                    errorData = await response.json();
+                    console.log("DEBUG: Error response data (JSON):", errorData);
                 } catch (e) {
-                    // JSON değilse veya bozuksa, ham metni al
                     const rawErrorText = await response.text();
-                    console.error("DEBUG: Failed to parse error response as JSON. Raw text:", rawErrorText.substring(0, 200) + "..."); // DEBUG LOG
+                    console.error("DEBUG: Failed to parse error response as JSON. Raw text:", rawErrorText.substring(0, 200) + "...");
                     throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk: ${rawErrorText.substring(0, 200)}...`);
                 }
-                // Hata verisi içinde 'error' alanı yoksa genel bir mesaj kullan
                 throw new Error(errorData.error || `HTTP error! Status: ${response.status} - ${response.statusText}`);
             }
 
             const data = await response.json();
-            console.log("DEBUG: Successful response data:", data); // DEBUG LOG
+            console.log("DEBUG: Successful response data:", data);
             if (data.error) {
                 outputElement.innerHTML = `<p class="error-message">Hata: ${data.error}</p>`;
             } else {
                 outputElement.innerHTML = `<p>${data.response}</p>`;
             }
         } catch (error) {
-            console.error('DEBUG: API isteği başarısız oldu:', error); // DEBUG LOG
+            console.error('DEBUG: API isteği başarısız oldu:', error);
             outputElement.innerHTML = `<p class="error-message">Bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.</p>`;
         } finally {
             loadingIndicator.style.display = 'none';
             disableControls(false);
-            console.log("DEBUG: Request finished. Controls enabled."); // DEBUG LOG
+            console.log("DEBUG: Request finished. Controls enabled.");
         }
     }
 
@@ -298,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unitSelect.disabled = status;
         getTopicExplanationBtn.disabled = status;
         questionInput.disabled = status;
+        underlinedPhraseInput.disabled = status; // YENİ: Altı çizili ifade input'unu devre dışı bırak
         askTextQuestionBtn.disabled = status;
         imageUpload.disabled = status;
         askImageQuestionBtn.disabled = status;
