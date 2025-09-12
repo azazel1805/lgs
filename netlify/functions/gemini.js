@@ -1,3 +1,4 @@
+// netlify/functions/gemini.js
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 exports.handler = async function(event, context) {
@@ -28,7 +29,7 @@ exports.handler = async function(event, context) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const generationConfig = {
-        temperature: 0.05, // MUTLAK MİNİMUM SICAKLIK! Modelin talimatlara mutlak sadakatle uyması, hiç yaratıcılık sergilememesi için.
+        temperature: 0.05, // MUTLAK MİNİMUM SICAKLIK! Modelin talimatlara mutlak sadakatle uyması, hiç yaratıcılık sergilememesi için. (Önceki 0.2'den düşürüldü)
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 4096, // Detaylı açıklamalar için yeterli olmalı.
@@ -78,7 +79,7 @@ exports.handler = async function(event, context) {
             *   Bu seçeneğin **neden diğerlerinden daha doğru, daha kapsamlı ve altı çizili ifadenin tüm mecazi unsurlarını en iyi yansıtan** olduğunu, metindeki somut kanıtlarla, ipuçlarıyla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır bir şekilde gerekçelendir.
             *   Altı çizili ifadenin ana fiili ve isimlerinin (örn. "nefes", "dalgalandırmak", "bayrak") hangi mecazi anlamlara karşılık geldiğini açıkça belirt.
         4.  **Öğretici ve LGS Uyumlu Dil:** Cevabı bir öğrenciye bir öğretmen gibi açıkla; sadece sonucu söyleyip geçme, öğrencinin konuyu ve yorumlama mantığını kavramasını sağla. Yanıtın LGS soru çözüm stratejilerini yansıttığından emin ol.
-        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`.
+        5.  **Yapılandırılmış ve Net Yanıt:** Cevabını belirgin başlıklar ("1. Sorunun ve Altı Çizili İfadenin Derinlemesine Analizi", "2. Seçeneklerin Çok Titizlikle ve Kıyaslayarak Değerlendirilmesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi") ve madde işaretleri kullanarak yapılandır.`;
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
