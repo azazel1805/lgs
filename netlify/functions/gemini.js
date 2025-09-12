@@ -10,11 +10,9 @@ exports.handler = async function(event, context) {
 
     let GEMINI_API_KEY;
     if (process.env.NETLIFY_DEV) {
-        // Netlify Dev ortamında .env'den çek
         require('dotenv').config();
         GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     } else {
-        // Netlify'da dağıtıldığında ortam değişkeninden çek
         GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     }
 
@@ -29,12 +27,12 @@ exports.handler = async function(event, context) {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-    // Güvenlik ayarları (isteğe bağlı ama önerilir)
+    // *** GENERATION CONFIG AYARLARI GÜNCELLENDİ ***
     const generationConfig = {
-        temperature: 0.7,
+        temperature: 0.4, // Daha düşük sıcaklık, daha odaklı ve mantıksal yanıtlar için
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096, // Daha uzun, detaylı yorumlar için token limitini artırdık
     };
 
     const safetySettings = [
@@ -58,7 +56,15 @@ exports.handler = async function(event, context) {
 
     try {
         const { type, prompt, image, lesson, unit } = JSON.parse(event.body);
-        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı ve detaylı bilgi veren bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Mümkünse madde işaretleri veya numaralandırılmış listeler kullanarak bilgiyi yapılandır.`;
+        
+        // *** SYSTEM INSTRUCTION GÜNCELLENDİ ***
+        let systemInstruction = `Sen bir LGS (8. sınıf) sınavına hazırlanan öğrencilere yardımcı olan, Türkiye Milli Eğitim Bakanlığı (MEB) müfredatına hakim, sabırlı, detaylı bilgi veren ve ÖZELLİKLE YORUMLAMA, ANALİZ VE ÇIKARIM YAPMA gerektiren sorularda başarılı olan bir yapay zeka asistanısın. Tüm cevaplarını Türkçe olarak ve 8. sınıf seviyesine uygun, anlaşılır bir dille vermelisin. Yanıtlarını verirken aşağıdaki noktalara dikkat et:
+        - Sadece bilgi vermekle kalma, verilen metin, görsel veya bilgi parçacığını DERİNLEMESİNE ANALİZ ET.
+        - Neden-sonuç ilişkileri kur, çıkarımlar yap ve bu çıkarımları GEREKÇELERİYLE AÇIKLA.
+        - Cevabın neden doğru olduğunu veya neden belirli bir sonucun çıkarılabileceğini adım adım göster.
+        - Madde işaretleri veya numaralandırılmış listeler kullanarak bilgiyi yapılandır ve açıklayıcı ol.
+        - LGS soru tiplerine (özellikle yorumlama ve analiz sorularına) uygun bir dil ve yaklaşım sergile.
+        - Bir öğretmen gibi açıkla, sadece sonucu söyleyip geçme.`;
 
         if (lesson && unit) {
             systemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya odaklanarak ve LGS bağlamında yanıtlar ver.`;
@@ -75,7 +81,6 @@ exports.handler = async function(event, context) {
             requestParts.push({ text: prompt });
         } else if (type === 'image') {
             if (image) {
-                // Frontend'de resmi JPEG'e dönüştürdüğümüz için mimeType'ı kesin olarak image/jpeg olarak belirliyoruz.
                 requestParts.push({
                     inlineData: {
                         mimeType: "image/jpeg", 
@@ -83,10 +88,10 @@ exports.handler = async function(event, context) {
                     },
                 });
             }
-            if (prompt) {
+            if (prompt) { // Kullanıcı resimle birlikte metin de sağladıysa
                 requestParts.push({ text: prompt });
-            } else {
-                requestParts.push({ text: "Bu resimde ne var veya resimdeki konuyu LGS 8. sınıf müfredatı kapsamında açıklar mısın? Detaylı bir açıklama bekliyorum." });
+            } else { // Kullanıcı sadece resim sağladıysa, yorumlama talimatını ekle
+                requestParts.push({ text: "Bu resimdeki ana fikri, konuyu veya durumu LGS 8. sınıf müfredatı kapsamında analiz edip yorumlar mısın? Detaylı bir açıklama ve varsa çıkarımlar bekliyorum." });
             }
         }
 
@@ -122,7 +127,6 @@ exports.handler = async function(event, context) {
 
     } catch (error) {
         console.error('Netlify Fonksiyonu veya Gemini API Hatası:', error);
-        // Hata detaylarını sadece geliştirme ortamında göstermek daha güvenlidir.
         const errorMessage = `AI yanıtı alınırken bir sorun oluştu: ${error.message}`;
         const errorDetails = process.env.NODE_ENV !== 'production' ? error.stack : undefined;
 
