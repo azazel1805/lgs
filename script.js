@@ -118,49 +118,104 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Resim yüklendiğinde önizleme yap
+    // Resim yüklendiğinde önizleme yap ve yeniden boyutlandır/sıkıştır
     imageUpload.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
+            const MAX_SIZE = 1024; // Maksimum genişlik veya yükseklik (piksel)
             const reader = new FileReader();
+
             reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block';
-                askImageQuestionBtn.style.display = 'inline-block';
+                const img = new Image();
+                img.src = e.target.result;
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Resmi yeniden boyutlandırma
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Yeniden boyutlandırılmış resmi JPEG olarak dışa aktar ve kaliteyi düşür
+                    canvas.toDataURL('image/jpeg', 0.7) // 0.7 kalite (0.0 - 1.0 arası)
+                        .then(resizedBase64 => {
+                            imagePreview.src = resizedBase64;
+                            imagePreview.style.display = 'block';
+                            askImageQuestionBtn.style.display = 'inline-block';
+
+                            // Yeniden boyutlandırılmış ve sıkıştırılmış resmi bir data attribute olarak sakla
+                            imagePreview.dataset.resizedImage = resizedBase64.split(',')[1]; // Base64 kısmını al
+                        })
+                        .catch(error => {
+                            console.error("Resim yeniden boyutlandırma/sıkıştırma hatası:", error);
+                            alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
+                            // Hata durumunda formu sıfırla
+                            imageUpload.value = '';
+                            imagePreview.src = '';
+                            imagePreview.style.display = 'none';
+                            askImageQuestionBtn.style.display = 'none';
+                            delete imagePreview.dataset.resizedImage;
+                        });
+                };
+                img.onerror = () => {
+                    console.error("Resim yüklenemedi veya bozuk.");
+                    alert("Yüklenen resim geçersiz veya bozuk. Lütfen başka bir resim deneyin.");
+                    imageUpload.value = '';
+                    imagePreview.src = '';
+                    imagePreview.style.display = 'none';
+                    askImageQuestionBtn.style.display = 'none';
+                    delete imagePreview.dataset.resizedImage;
+                };
             };
             reader.readAsDataURL(file);
         } else {
             imagePreview.src = '';
             imagePreview.style.display = 'none';
             askImageQuestionBtn.style.display = 'none';
+            delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
         }
     });
 
     // Resimle soru sor butonuna tıklama olayı
     askImageQuestionBtn.addEventListener('click', async () => {
-        const file = imageUpload.files[0];
-        const question = questionInput.value.trim(); // Resimle birlikte metin sorusu da sorulabilir
+        // Önizleme elementinde sakladığımız yeniden boyutlandırılmış Base64 string'ini alıyoruz
+        const resizedBase64 = imagePreview.dataset.resizedImage; 
+        const question = questionInput.value.trim(); 
 
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const base64Image = e.target.result.split(',')[1]; // Base64 kısmını al
-                await getGeminiResponse({
-                    type: 'image',
-                    prompt: question,
-                    image: base64Image,
-                    lesson: lessonSelect.value || null,
-                    unit: unitSelect.value || null
-                }, aiResponseOutput);
-                questionInput.value = ''; // Input'u temizle
-                imageUpload.value = ''; // Dosya inputunu temizle
-                imagePreview.src = '';
-                imagePreview.style.display = 'none';
-                askImageQuestionBtn.style.display = 'none';
-            };
-            reader.readAsDataURL(file);
+        if (resizedBase64) {
+            await getGeminiResponse({
+                type: 'image',
+                prompt: question,
+                image: resizedBase64, // Yeniden boyutlandırılmış ve sıkıştırılmış resmi gönder
+                lesson: lessonSelect.value || null,
+                unit: unitSelect.value || null
+            }, aiResponseOutput);
+
+            // Başarılı gönderimden sonra formu temizle
+            questionInput.value = ''; 
+            imageUpload.value = ''; 
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+            askImageQuestionBtn.style.display = 'none';
+            delete imagePreview.dataset.resizedImage; // Saklanan resmi temizle
         } else {
-            alert('Lütfen bir resim seçiniz.');
+            alert('Lütfen önce bir resim yükleyiniz.');
         }
     });
 
@@ -179,15 +234,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload),
             });
 
+            // Hata yanıtının JSON olup olmadığını kontrol et
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+                let errorData;
+                try {
+                    errorData = await response.json(); // JSON yanıtı almaya çalış
+                } catch (e) {
+                    // JSON değilse veya bozuksa, ham metni al
+                    const rawErrorText = await response.text();
+                    throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil: ${rawErrorText.substring(0, 200)}...`);
+                }
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
             }
 
             const data = await response.json();
             if (data.error) {
                 outputElement.innerHTML = `<p class="error-message">Hata: ${data.error}</p>`;
             } else {
+                // Yanıtı Markdown olarak işleyebiliriz, ancak basit p etiketi yeterli olabilir
+                // Eğer Markdown desteği eklemek isterseniz burada bir kütüphane kullanmalısınız.
                 outputElement.innerHTML = `<p>${data.response}</p>`;
             }
         } catch (error) {
