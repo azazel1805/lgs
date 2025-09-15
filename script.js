@@ -4,8 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const unitSelect = document.getElementById('unitSelect');
     const getTopicExplanationBtn = document.getElementById('getTopicExplanationBtn');
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
+    const questionTypeSelect = document.getElementById('questionTypeSelect'); // YENİ: Soru Türü Seçimi
     const questionInput = document.getElementById('questionInput');
-    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // YENİ: Altı çizili ifade input'u
+    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput');
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
     const imageUpload = document.getElementById('imageUpload');
     const imagePreview = document.getElementById('imagePreview');
@@ -47,10 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // Yıl bilgisini footer'a ekle
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-    // Ders seçimi dropdown'ını doldur
     for (const lesson in lgsCurriculum) {
         const option = document.createElement('option');
         option.value = lesson;
@@ -58,10 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonSelect.appendChild(option);
     }
 
-    // Ders seçildiğinde ünitelere göre doldur
     lessonSelect.addEventListener('change', () => {
         const selectedLesson = lessonSelect.value;
-        unitSelect.innerHTML = '<option value="">-- Konu Seçiniz --</option>'; // Önceki üniteleri temizle
+        unitSelect.innerHTML = '<option value="">-- Konu Seçiniz --</option>';
         topicExplanationOutput.innerHTML = '<p class="placeholder">Yukarıdan bir ders ve konu seçerek detaylı anlatımını alabilirsiniz.</p>';
         getTopicExplanationBtn.style.display = 'none';
 
@@ -78,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Ünite seçildiğinde "Konu Anlatımını Getir" butonunu göster
     unitSelect.addEventListener('change', () => {
         if (unitSelect.value) {
             getTopicExplanationBtn.style.display = 'block';
@@ -87,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Konu anlatımını getir butonuna tıklama olayı
     getTopicExplanationBtn.addEventListener('click', async () => {
         const selectedLesson = lessonSelect.value;
         const selectedUnit = unitSelect.value;
@@ -103,32 +99,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Metinle soru sor butonuna tıklama olayı
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
-        const underlinedPhrase = underlinedPhraseInput.value.trim(); // YENİ: Altı çizili ifadeyi al
+        const underlinedPhrase = underlinedPhraseInput.value.trim();
+        const questionType = questionTypeSelect.value; // YENİ: Soru türünü al
+
+        if (!questionType) {
+            alert('Lütfen bir soru türü seçiniz.');
+            return;
+        }
 
         if (question) {
             let fullPrompt = question;
             if (underlinedPhrase) {
-                // Altı çizili ifadeyi prompt'un başına ekliyoruz, böylece AI öncelik verir.
-                fullPrompt = `[Kullanıcının belirttiği altı çizili ifade: "${underlinedPhrase}"]\n${question}`;
+                fullPrompt = `[Kullanıcının belirttiği detay: "${underlinedPhrase}"]\n${question}`;
             }
 
             await getGeminiResponse({
                 type: 'text',
-                prompt: fullPrompt, // Oluşturulan prompt'u gönder
+                prompt: fullPrompt,
+                questionType: questionType, // YENİ: Soru türünü backend'e gönder
                 lesson: lessonSelect.value || null,
                 unit: unitSelect.value || null
             }, aiResponseOutput);
-            questionInput.value = ''; // Input'u temizle
-            underlinedPhraseInput.value = ''; // YENİ: Altı çizili ifade input'unu da temizle
+            questionInput.value = '';
+            underlinedPhraseInput.value = '';
+            questionTypeSelect.value = ''; // Seçimi temizle
         } else {
             alert('Lütfen bir soru yazınız.');
         }
     });
 
-    // Resim yüklendiğinde önizleme yap ve yeniden boyutlandır/sıkıştır
     imageUpload.addEventListener('change', (event) => {
         const file = event.target.files[0];
         console.log("DEBUG: Image upload change event triggered. File:", file ? file.name : "No file");
@@ -208,38 +209,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Resimle soru sor butonuna tıklama olayı
     askImageQuestionBtn.addEventListener('click', async () => {
         console.log("DEBUG: Ask Image Question button clicked.");
         const resizedBase64 = imagePreview.dataset.resizedImage; 
         const question = questionInput.value.trim();
-        const underlinedPhrase = underlinedPhraseInput.value.trim(); // YENİ: Altı çizili ifadeyi al
-        console.log("DEBUG: Resized Base64 data present:", !!resizedBase64);
-        console.log("DEBUG: Question input for image:", question);
-        console.log("DEBUG: Underlined phrase for image:", underlinedPhrase); // DEBUG LOG
+        const underlinedPhrase = underlinedPhraseInput.value.trim();
+        const questionType = questionTypeSelect.value; // YENİ: Soru türünü al
 
+        if (!questionType) {
+            alert('Lütfen bir soru türü seçiniz.');
+            return;
+        }
 
         if (resizedBase64) {
             let fullPrompt = question;
             if (underlinedPhrase) {
-                // Altı çizili ifadeyi prompt'un başına ekliyoruz, böylece AI öncelik verir.
-                fullPrompt = `[Kullanıcının belirttiği altı çizili ifade: "${underlinedPhrase}"]\n${question}`;
+                fullPrompt = `[Kullanıcının belirttiği detay: "${underlinedPhrase}"]\n${question}`;
             } else if (!question) {
-                // Sadece resim ve altı çizili ifade yoksa varsayılan bir prompt ver
-                fullPrompt = "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele. Eğer varsa, altı çizili ifadeyi tespit et ve o ifadenin mecazi, eylemsel anlamını ve metinle ilişkisini derinlemesine analiz et. Doğru seçeneği belirle ve bu seçeneğin neden doğru, diğerlerinin neden yanlış veya eksik olduğunu, özellikle pasif/aktif veya genel/spesifik anlam farklarını vurgulayarak metinle ilişkilendirerek adım adım açıkla. Cevabını yukarıdaki LGS yorumlama stratejisine uygun olarak yapılandır.";
+                 // Eğer sadece resim gönderilmişse ve detay yoksa, genel bir prompt kullanırız
+                 fullPrompt = "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele.";
             }
 
             console.log("DEBUG: Calling getGeminiResponse for image with fullPrompt:", fullPrompt);
             await getGeminiResponse({
                 type: 'image',
-                prompt: fullPrompt, // Oluşturulan prompt'u gönder
+                prompt: fullPrompt,
+                questionType: questionType, // YENİ: Soru türünü backend'e gönder
                 image: resizedBase64,
                 lesson: lessonSelect.value || null,
                 unit: unitSelect.value || null
             }, aiResponseOutput);
 
             questionInput.value = ''; 
-            underlinedPhraseInput.value = ''; // YENİ: Altı çizili ifade input'unu da temizle
+            underlinedPhraseInput.value = '';
+            questionTypeSelect.value = ''; // Seçimi temizle
             imageUpload.value = ''; 
             imagePreview.src = '';
             imagePreview.style.display = 'none';
@@ -252,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Gemini API'ye istek gönderme fonksiyonu
     async function getGeminiResponse(payload, outputElement) {
         outputElement.innerHTML = '';
         loadingIndicator.style.display = 'flex';
@@ -303,8 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonSelect.disabled = status;
         unitSelect.disabled = status;
         getTopicExplanationBtn.disabled = status;
+        questionTypeSelect.disabled = status; // YENİ: Soru türü seçimini devre dışı bırak
         questionInput.disabled = status;
-        underlinedPhraseInput.disabled = status; // YENİ: Altı çizili ifade input'unu devre dışı bırak
+        underlinedPhraseInput.disabled = status;
         askTextQuestionBtn.disabled = status;
         imageUpload.disabled = status;
         askImageQuestionBtn.disabled = status;
