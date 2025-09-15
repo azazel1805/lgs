@@ -40,16 +40,28 @@
 
             <section class="ai-interaction-area card">
     <h2>AI'a Soru Sor</h2>
+    <div class="select-group">
+        <label for="questionTypeSelect">Soru Türü Seçiniz:</label>
+        <select id="questionTypeSelect">
+            <option value="">-- Soru Türü Seçiniz --</option>
+            <option value="yorum_analiz">Anlam Bilgisi / Yorumlama / Analiz (Türkçe/Sosyal)</option>
+            <option value="dilbilgisi">Dil Bilgisi (Fiil Çatısı, Cümle Türleri vb.)</option>
+            <option value="matematik_geometri">Matematik / Geometri (Hesaplama, Problem Çözme)</option>
+            <option value="fen_bilimleri">Fen Bilimleri (Kavram, Deney Yorumlama)</option>
+            <option value="genel_bilgi">Genel Konu/Bilgi Sorusu</option>
+            <option value="metin_okuma">Metin Okuma / Paragraf Anlama</option>
+        </select>
+    </div>
+
     <div class="question-input-group">
         <label for="questionInput">Soru Metni ve Seçenekleri (Metnin tamamını buraya yapıştırın):</label>
         <textarea id="questionInput" placeholder="Soru metnini ve seçenekleri buraya yapıştırın..."></textarea>
     </div>
     
-    <!-- YENİ EKLENEN KISIM: Altı Çizili İfade İçin Ayrı Alan -->
     <div class="question-input-group">
-        <label for="underlinedPhraseInput">Altı Çizili İfadeyi Buraya Girin (Eğer varsa, harfiyen):</label>
-        <input type="text" id="underlinedPhraseInput" placeholder="Örn: nefesiyle dalgalandırmalıdır bayrağını">
-        <div class="note">Not: Altı çizili ifade yoksa boş bırakabilirsiniz.</div>
+        <label for="underlinedPhraseInput">Altı Çizili İfadeyi / İstenen Fiilleri / Soru Numarasını Buraya Girin (Eğer varsa):</label>
+        <input type="text" id="underlinedPhraseInput" placeholder="Örn: nefesiyle dalgalandırmalıdır bayrağını, I:kapsar II:korunarak, 4. soruyu çöz">
+        <div class="note">Not: İlgili bilgi yoksa boş bırakabilirsiniz.</div>
     </div>
     
     <button id="askTextQuestionBtn" class="primary-btn">Soru Sor</button>
@@ -59,7 +71,7 @@
         <input type="file" id="imageUpload" accept="image/*" capture="camera">
         <img id="imagePreview" src="" alt="Resim Önizleme" style="display: none;">
         <button id="askImageQuestionBtn" class="primary-btn" style="display: none;">Resmi ve Soruyu Gönder</button>
-        <div class="note">Not: Resimli sorular için metin kutusuna ekstra açıklama ekleyebilirsiniz. Altı çizili ifadeyi üstteki alana girmeyi unutmayın.</div>
+        <div class="note">Not: Resimli sorular için metin kutusuna ekstra açıklama ekleyebilirsiniz. Altı çizili ifade/fiiller/soru numarasını üstteki alana girmeyi unutmayın.</div>
     </div>
 
     <div id="aiResponseOutput" class="output-area">
@@ -82,4 +94,5 @@
 </body>
 
 </html>
+
 
