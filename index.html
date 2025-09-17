@@ -44,15 +44,13 @@
                 
                 <!-- Soru Türü Seçimi -->
                 <div class="select-group">
-                    <label for="questionTypeSelect">Soru Türü Seçiniz:</label>
                     <select id="questionTypeSelect">
-                        <option value="">-- Soru Türü Seçiniz --</option>
-                        <option value="yorum_analiz">Anlam Bilgisi / Yorumlama / Analiz (Türkçe/Sosyal)</option>
-                        <option value="dilbilgisi">Dil Bilgisi (Fiil Çatısı, Cümle Türleri vb.)</option>
-                        <!-- Matematik ve Fen Bilimleri soru türleri buradan kaldırıldı -->
-                        <option value="metin_okuma">Metin Okuma / Paragraf Anlama</option>
-                        <option value="genel_bilgi">Genel Konu/Bilgi Sorusu</option>
-                    </select>
+            <option value="">-- Soru Türü Seçiniz --</option>
+            <option value="yorum_analiz">Anlam Bilgisi / Yorumlama / Çıkarım (Metindeki mecazi anlam, duygu durumu vb.)</option>
+            <option value="dilbilgisi">Dil Bilgisi (Fiil Çatısı, Cümle Türleri, Yazım Kuralları, Noktalama vb.)</option>
+            <option value="metin_okuma">Metin Okuma / Paragraf Anlama (Ana fikir, yardımcı fikir, başlık, anlatım tekniği vb.)</option>
+            <option value="genel_bilgi">Genel Bilgi Sorusu (Konu, tanım, olay açıklaması vb. - Yorumlama içermeyen)</option>
+        </select>
                 </div>
 
                 <div class="question-input-group">
@@ -95,3 +93,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
