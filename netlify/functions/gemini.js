@@ -80,40 +80,13 @@ exports.handler = async function(event, context) {
                 **LGS Dil Bilgisi (Fiil Çatısı/Cümle Türleri vb.) Stratejisi:**
                 1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metindeki her bir numaralı cümleyi veya kullanıcının belirttiği numaralı fiilleri (örn. "I: kapsar", "II: korunarak") dikkatlice ve eksiksiz oku. Dil bilgisi kuralını (fiil çatısı, yüklemin yerine göre cümle türü vb.) kesin ve doğru bir şekilde uygula.
                 2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:**
-                    *   **Edilgen Çatılı Fiiller:** Öznesine göre edilgen olan fiiller doğrudan nesne ALAMAZLAR ve bu nedenle nesnesine göre çatıları daima GEÇİŞSİZDİR. Bu kural tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. "Sözde özne" kavramını doğrudan nesne ile karıştırma.
+                    *   **Edilgen Çatılı Fiiller:** Öznesine göre edilgen olan fiiller doğrudan nesne ALAMAZLAR ve bu nedenle nesnesine göre çatıları daima GEÇİŞSİZLERDİR. Bu kural tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. "Sözde özne" kavramını doğrudan nesne ile karıştırma.
                     *   **Yüklemin Yerine Göre Cümle:** Yüklemi sonda olan cümleler KURALLI (DÜZ) cümledir. Yüklemi sonda olmayan (başta veya ortasında olan) cümleler DEVRİK (KURANSIZ) cümledir. Yüklemi bulunmayan cümleler EKSİLTİLİ cümledir. Yüklemin yerini doğru tespit et.
                 3.  **Seçenekleri Titizlikle Ele:** Her seçeneği, yaptığın kesin dil bilgisi analizleriyle birebir kıyasla. Yanlış seçenekleri neden hatalı olduğunu net açıkla.
                 4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden diğerlerinden daha üstün ve kesinlikle doğru olduğunu, uyguladığın dil bilgisi kurallarını adım adım, açık ve anlaşılır şekilde gerekçelendir.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Metin/Fiiller/Cümlelerin Analizi ve Dil Bilgisi Kuralı Uygulaması", "2. Seçeneklerin Değerlendirilmesi ve Elemesi", "3. Doğru Cevabın Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "matematik_geometri":
-                specificInstruction = `
-                **LGS Matematik/Geometri Çözüm Stratejisi:**
-                1.  **Soruyu ve Verileri Hataız Tespit Et:** Verilen metni ve/veya görseli dikkatlice oku. Tüm sayısal verileri, şekillerin özelliklerini (kare, dikdörtgen, üçgen, birim kare vb.) ve isteneni (alan, çevre, oran, eşitsizlik, eğim vb.) doğru tespit et. Görselde kareli zemin, birim kare veya şekil birleşimi varsa, tüm kenar uzunluklarını ve boyutları doğru sayarak veya hesaplayarak tespit et. Özellikle parçalı şekillerde (örn. L harfi) A ve B noktaları arası toplam yatay ve dikey mesafeyi (dik üçgen oluşturarak) hatasız bul.
-                2.  **Adım Adım, Mantıksal ve Formüllere Uygun Çözüm:** Problemi çözmek için gerekli tüm matematiksel/geometrik adımları, formülleri (örn. alan, çevre, Pisagor teoremi (hipotenüs² = dik kenar1² + dik kenar2²), eğim formülü Eğim = $\frac{\Delta y}{\Delta x}$) ve mantıksal çıkarımları eksiksiz ve hatasız uygula. Her adımı açıkla.
-                3.  **ÖZEL STRATEJİ: Eşitsizlik ve Aralık Soruları:** Eğer soru bir değerin alabileceği aralığı soruyorsa (örn. en az, en fazla, arasında), o değerin **minimum (alt sınır)** ve **maksimum (üst sınır)** değerlerini verilen koşullara göre ayrı ayrı hesapla. Bu iki eşitsizliği birleştirerek doğru aralığı bul. Bu tür mantıksal çıkarımları hatasız yap.
-                4.  **ÖZEL STRATEJİ: "Olamaz" Tipi Sorular ve Çoklu Olasılıklar (Çok Kritik!):** Eğer soru "hangisi olamaz?" veya "hangileri olabilir?" tipi bir soruysa:
-                    *   **Tüm olası durumları veya sonuçları eksiksiz belirle.** Örneğin, bir şeklin birden fazla şekilde tamamlanması gerekiyorsa (örn. 8 birim kareden oluşan dikdörtgen 8x1 veya 4x2 olabilir), **tüm bu durumları ayrı ayrı listele ve her bir durum için istenen değeri (örn. köşegen eğimi) hatasız hesapla.**
-                    *   Hesapladığın tüm olası sonuçları bir liste halinde oluştur (örn. {1/8, -1/8, 1/2, -1/2}).
-                    *   **Seçenekleri bu "Olası Sonuçlar" listesi ile kesin bir şekilde kıyasla.**
-                    *   **KURAL:** Olası Sonuçlar listende **OLMAYAN** tek seçeneği doğru cevap olarak işaretle.
-                    *   Eğer analizlerin sonucunda, seçeneklerdeki **birden fazla şık** "Olası Sonuçlar" listende yoksa (yani birden fazla "olamaz" şıkkı çıkıyorsa), bu durumda **"Bu soruda birden fazla doğru cevap (olamaz seçeneği) bulunmaktadır. Bunlar: [Olamaz şıklar listesi]. LGS formatında tek doğru cevap beklendiği için soruda hata olabilir."** şeklinde durumu nötr bir dille, eleştirmeden belirt, ancak kendi analizinde tüm "olamaz" seçeneklerini göster.
-                5.  **ÖZEL STRATEJİ: Oran-Orantı ve Çelişki Yönetimi (Örn. Karışım Problemleri):** Eğer problemde birimlerin (örn. kareciklerin) farklı oranlarda olduğu özdeş kaplar gibi çelişkili görünen bilgiler varsa, LGS'de bu tür sorular genellikle **her bir birimin (kareciğin) farklı hacimleri temsil ettiği varsayımına dayanır.** "Eşit ölçekli" ifadesini bu şekilde yorumla. Toplam hacmi ($V_{bardak}$) ve her birim türünün (turşu suyu, havuç suyu, acı sos) bir bardaktaki oranını kullanarak denklemleri kur ve çöz. Hesapladığın sonuca göre şıkları değerlendir.
-                6.  **Matematiksel Eşdeğerlikleri Doğru Algıla:** Seçeneklerdeki üslü sayılar, köklü ifadeler veya eşitsizlikler gibi matematiksel ifadelerin sayısal karşılıklarını hatasız hesapla ve senin bulduğun sonuçla tam olarak eşleşip eşleşmediğini kontrol et.
-                7.  **Seçenekleri Titizlikle Ele ve En Doğruyu Belirle:** Yaptığın tüm analizler ve hesaplamalarla her seçeneği birebir kıyasla. **Bulduğun kesin sayısal sonuç, seçeneklerdeki herhangi bir değerle TAM OLARAK EŞLEŞMİYorsa, o zaman KESİNLİKLE HİÇBİR SEÇENEĞİ İŞARETLEME.** Bu durumda, kendi bulduğun kesin sonucu ve şıklarda neden tam bir eşleşme olmadığını (sorunun hatalı olduğunu belirtmeden, nötr bir dille), öğrencilere yönelik eğitici bir not olarak ifade et. Yanlış seçenekleri neden hatalı olduğunu açıklayarak ele.
-                8.  **Doğru Cevabı Gerekçelendir:** Eğer tam eşleşen veya "olamaz" tipi sorularda istenen koşulu sağlayan bir seçenek bulunursa, o seçeneğin neden diğerlerinden daha üstün ve kesinlikle doğru olduğunu, tüm adımları, formülleri ve mantıksal çıkarımları karşılaştırarak adım adım, açık ve anlaşılır şekilde gerekçelendir.
-                9.  **Yapılandırılmış Yanıt:** Cevabını "1. Sorunun ve Verilenlerin Analizi", "2. Adım Adım Çözüm ve Mantıksal Çıkarımlar", "3. Olası Sonuçların Değerlendirilmesi ve Seçenek Elemesi", "4. Doğru Cevap" başlıkları ve madde işaretleri kullanarak yapılandır.`;
-                break;
-            case "fen_bilimleri":
-                specificInstruction = `
-                **LGS Fen Bilimleri Çözüm Stratejisi:**
-                1.  **Deney/Metin/Görsel Analizi:** Verilen metni, deney düzeneklerini, grafikleri veya görselleri dikkatlice ve eksiksiz oku. Tüm verileri, gözlemleri, varsayımları ve bilimsel kavramları doğru tespit et.
-                2.  **Bilimsel Prensipleri Uygula:** İlgili bilimsel prensipleri, yasaları (örn. enerji korunumu, $Q=mc\Delta T$) ve kavramları hatasız uygula. Neden-sonuç ilişkilerini doğru kur.
-                3.  **Yargıları Kesinlikle Doğru Olma Durumuna Göre Analiz Et:** Her bir yargıyı ayrı ayrı ele al ve verilen bilgiler ışığında "kesinlikle doğru", "kesinlikle yanlış" veya "bilinemez" olup olmadığını mantıksal ve bilimsel olarak gerekçelendir. Bilinmeyen değişkenlerin (örn. kütle, sıcaklık değişimi) olası etkilerini dikkate al.
-                4.  **Seçenekleri Titizlikle Ele:** Yaptığın analizlerle her seçeneği birebir kıyasla. Yanlış seçenekleri neden kesinlikle doğru olmadığını açıklayarak ele.
-                5.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden diğerlerinden daha üstün ve kesinlikle doğru olduğunu, bilimsel prensipleri, formülleri ve mantıksal çıkarımları karşılaştırarak adım adım, açık ve anlaşılır şekilde gerekçelendir.
-                6.  **Yapılandırılmış Yanıt:** Cevabını "1. Deneyin/Metnin/Görselin Analizi ve Bilimsel Prensipler", "2. Yargıların Değerlendirilmesi", "3. Seçeneklerin Elemesi ve Doğru Cevap" başlıkları ve madde işaretleri kullanarak yapılandır.`;
-                break;
+            // Matematik ve Fen Bilimleri stratejileri kaldırıldı
             case "metin_okuma": // Paragraf soruları için
                 specificInstruction = `
                 **LGS Metin Okuma/Paragraf Anlama Stratejisi:**
@@ -152,7 +125,6 @@ exports.handler = async function(event, context) {
             finalSystemInstruction = baseSystemInstruction + ` Konu anlatımı isteğine odaklan. Detaylı, kapsamlı ve eğitici bir anlatım yap.`; // Konu anlatımı için sistem talimatını özelleştir
         } else { // Metin veya görsel soruları için
             requestParts.push({ text: prompt });
-            // Bu prompt'un içine zaten underlinedPhraseInput'tan gelen bilgi eklendiği için burada tekrar işlemeye gerek yok.
         }
         
         if (type === 'image' && image) {
