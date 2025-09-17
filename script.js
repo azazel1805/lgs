@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const unitSelect = document.getElementById('unitSelect');
     const getTopicExplanationBtn = document.getElementById('getTopicExplanationBtn');
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
-    const questionTypeSelect = document.getElementById('questionTypeSelect'); // YENİ: Soru Türü Seçimi
+    const questionTypeSelect = document.getElementById('questionTypeSelect');
     const questionInput = document.getElementById('questionInput');
     const underlinedPhraseInput = document.getElementById('underlinedPhraseInput');
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
@@ -14,24 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiResponseOutput = document.getElementById('aiResponseOutput');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    // LGS 8. Sınıf Dersleri ve Üniteleri
+    // LGS 8. Sınıf Dersleri ve Üniteleri - SADECE İSTENEN DERSLER DAHİL EDİLDİ
     const lgsCurriculum = {
         "Türkçe": [
             "Sözcükte Anlam", "Cümlede Anlam", "Parçada Anlam", "Metin Türleri",
             "Fiilimsiler", "Cümlenin Ögeleri", "Cümle Türleri", "Yazım Kuralları",
             "Noktalama İşaretleri", "Anlatım Bozuklukları", "Edebi Sanatlar"
         ],
-        "Matematik": [
-            "Çarpanlar ve Katlar", "Üslü İfadeler", "Kareköklü İfadeler", "Veri Analizi",
-            "Basit Olayların Olma Olasılığı", "Cebirsel İfadeler ve Özdeşlikler",
-            "Doğrusal Denklemler", "Eşitsizlikler", "Üçgenler", "Dönüşüm Geometrisi",
-            "Geometrik Cisimler"
-        ],
-        "Fen Bilimleri": [
-            "Mevsimler ve İklim", "DNA ve Genetik Kod", "Basınç", "Madde ve Endüstri",
-            "Basit Makineler", "Enerji Dönüşümleri ve Çevre Bilimi",
-            "Elektrik Yükleri ve Elektrik Enerjisi"
-        ],
+        // "Matematik" dersi kaldırıldı
+        // "Fen Bilimleri" dersi kaldırıldı
         "T.C. İnkılap Tarihi ve Atatürkçülük": [
             "Bir Kahraman Doğuyor", "Millî Uyanış: Bağımsızlık Yolunda Atılan Adımlar",
             "Millî Bir Destan: Ya İstiklal Ya Ölüm!", "Çağdaş Türkiye Yolunda Adımlar",
@@ -50,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
+    // Ders seçimi dropdown'ını doldur
     for (const lesson in lgsCurriculum) {
         const option = document.createElement('option');
         option.value = lesson;
@@ -102,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
         const underlinedPhrase = underlinedPhraseInput.value.trim();
-        const questionType = questionTypeSelect.value; // YENİ: Soru türünü al
+        const questionType = questionTypeSelect.value;
 
         if (!questionType) {
             alert('Lütfen bir soru türü seçiniz.');
@@ -118,13 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await getGeminiResponse({
                 type: 'text',
                 prompt: fullPrompt,
-                questionType: questionType, // YENİ: Soru türünü backend'e gönder
+                questionType: questionType,
                 lesson: lessonSelect.value || null,
                 unit: unitSelect.value || null
             }, aiResponseOutput);
             questionInput.value = '';
             underlinedPhraseInput.value = '';
-            questionTypeSelect.value = ''; // Seçimi temizle
+            questionTypeSelect.value = '';
         } else {
             alert('Lütfen bir soru yazınız.');
         }
@@ -214,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const resizedBase64 = imagePreview.dataset.resizedImage; 
         const question = questionInput.value.trim();
         const underlinedPhrase = underlinedPhraseInput.value.trim();
-        const questionType = questionTypeSelect.value; // YENİ: Soru türünü al
+        const questionType = questionTypeSelect.value;
 
         if (!questionType) {
             alert('Lütfen bir soru türü seçiniz.');
@@ -226,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (underlinedPhrase) {
                 fullPrompt = `[Kullanıcının belirttiği detay: "${underlinedPhrase}"]\n${question}`;
             } else if (!question) {
-                 // Eğer sadece resim gönderilmişse ve detay yoksa, genel bir prompt kullanırız
                  fullPrompt = "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele.";
             }
 
@@ -234,15 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
             await getGeminiResponse({
                 type: 'image',
                 prompt: fullPrompt,
-                questionType: questionType, // YENİ: Soru türünü backend'e gönder
-                image: resizedBase64,
+                questionType: questionType,
                 lesson: lessonSelect.value || null,
                 unit: unitSelect.value || null
             }, aiResponseOutput);
 
             questionInput.value = ''; 
             underlinedPhraseInput.value = '';
-            questionTypeSelect.value = ''; // Seçimi temizle
+            questionTypeSelect.value = '';
             imageUpload.value = ''; 
             imagePreview.src = '';
             imagePreview.style.display = 'none';
@@ -305,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonSelect.disabled = status;
         unitSelect.disabled = status;
         getTopicExplanationBtn.disabled = status;
-        questionTypeSelect.disabled = status; // YENİ: Soru türü seçimini devre dışı bırak
+        questionTypeSelect.disabled = status;
         questionInput.disabled = status;
         underlinedPhraseInput.disabled = status;
         askTextQuestionBtn.disabled = status;
