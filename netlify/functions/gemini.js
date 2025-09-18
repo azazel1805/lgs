@@ -64,12 +64,15 @@ exports.handler = async function(event, context) {
                 break;
             case "dilbilgisi":
                 specificInstruction = `
-                **LGS Dil Bilgisi Stratejisi:**
-                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya kullanıcının belirttiği dil bilgisi unsurlarını dikkatlice ve eksiksiz oku. İlgili dil bilgisi kuralını kesin ve doğru bir şekilde uygula.
-                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir" gibi ifadelerden kesinlikle kaçın.)
-                3.  **Seçenekleri Titizlikle Ele:** Her seçeneği, yaptığın kesin dil bilgisi analizleriyle birebir kıyasla. Yanlış seçenekleri neden hatalı olduğunu net açıkla.
-                4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden diğerlerinden daha üstün ve kesinlikle doğru olduğunu, uyguladığın dil bilgisi kurallarını adım adım, açık ve anlaşılır şekilde gerekçelendir.
-                5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Metin/Unsurların Analizi ve Dil Bilgisi Kuralı Uygulaması", "### 2. Seçeneklerin Değerlendirilmesi ve Elemesi", "### 3. Doğru Cevabın Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                **LGS Dil Bilgisi (Yazım/Noktalama vb.) Stratejisi:**
+                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya kullanıcının belirttiği dil bilgisi unsurlarını dikkatlice ve eksiksiz oku. **Eğer metin içinde (I), (II), (III) gibi numaralandırılmış yerler varsa, bu numaraların hangi kelimeden veya ifadeden hemen sonra geldiğini KESİNLİKLE doğru tespit et.** İlgili dil bilgisi kuralını (fiil çatısı, cümle türü, noktalama vb.) kesin ve doğru bir şekilde uygula.
+                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir", "tartışmalı olabilir" gibi ifadelerden kesinlikle kaçın.)
+                    *   **Üç Nokta (...) Kullanımı:** Üç nokta, **tamamlanmamış cümlelerin sonuna** (yüklemi olmayan) veya **sayılan örneklerin devam ettiğini belirtmek için** (örneğin "...ve daha niceleri" gibi bir ifadeden sonra) konur.
+                    *   **Büyük Harflerin Kullanımı:** Özel isimler, kurum ve kuruluş adları büyük harfle başlar. Ancak, "Türk medeniyeti", "Türk sanatı" gibi tamlamalarda ikinci kelime (medeniyet, sanat) küçük harfle başlar. "Kızı Ümit Meriç" gibi akrabalık bildiren ifadelerde (unvan değilse) akrabalık adı küçük harfle başlar ("kızı Ümit Meriç").
+                    *   **"de/da" ve "ki"nin Yazımı:** Bağlaç olan "de/da" ve "ki" ayrı yazılır, ek olanlar bitişik yazılır. Bu kuralı doğru uygula.
+                3.  **Seçenekleri Titizlikle Ele:** Her bir numaralı yeri, yukarıdaki kurallara göre değerlendir. Hatalı olan seçenekleri ve neden hatalı olduklarını net bir şekilde belirt. Doğru olan seçeneği işaretle.
+                4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden doğru olduğunu, diğer seçeneklerin her birinin neden yanlış olduğunu, TDK kurallarını ve metin içindeki konumlarını referans alarak adım adım açıkla.
+                5.  **Yapılandırılmış Yanıt:** Cevabını "1. Metin/Unsurların Analizi ve Dil Bilgisi Kuralı Uygulaması", "2. Seçeneklerin Değerlendirilmesi ve Elemesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
             case "tarih_din_genel":
                 specificInstruction = `
