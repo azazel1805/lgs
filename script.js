@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const unitSelect = document.getElementById('unitSelect');
     const getTopicExplanationBtn = document.getElementById('getTopicExplanationBtn');
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
-    const questionTypeSelect = document.getElementById('questionTypeSelect');
     const questionInput = document.getElementById('questionInput');
-    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput');
+    const detailsInput = document.getElementById('detailsInput'); // Adı daha genel hale getirildi
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
     const aiResponseOutput = document.getElementById('aiResponseOutput');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
+    // LGS 8. Sınıf Dersleri ve Üniteleri - Sadece Sözel Dersler
     const lgsCurriculum = {
         "Türkçe": [
             "Sözcükte Anlam", "Cümlede Anlam", "Parçada Anlam", "Metin Türleri",
@@ -87,18 +87,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function createPrompt(questionText, detailsText) {
         let fullPrompt = questionText;
         if (detailsText) {
-            fullPrompt = `[Kullanıcının belirttiği detaylar: "${detailsText}"]\n${questionText}`;
+            fullPrompt = `[Kullanıcının belirttiği ek detaylar/odak noktası: "${detailsText}"]\n${questionText}`;
         }
         return fullPrompt;
     }
 
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
-        const details = underlinedPhraseInput.value.trim();
-        const questionType = questionTypeSelect.value;
-
-        if (!questionType) {
-            alert('Lütfen bir soru türü seçiniz.');
+        const details = detailsInput.value.trim();
+        const selectedLessonForQuestion = lessonSelect.value;
+        
+        if (!selectedLessonForQuestion) {
+            alert('Lütfen sorunun hangi derse ait olduğunu sol taraftan seçiniz.');
             return;
         }
         if (!question) {
@@ -111,13 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await getGeminiResponse({
             type: 'text',
             prompt: fullPrompt,
-            questionType: questionType,
-            lesson: lessonSelect.value || null,
+            lesson: selectedLessonForQuestion,
             unit: unitSelect.value || null
         }, aiResponseOutput);
         questionInput.value = '';
-        underlinedPhraseInput.value = '';
-        questionTypeSelect.value = '';
+        detailsInput.value = '';
     });
 
     async function getGeminiResponse(payload, outputElement) {
@@ -128,9 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/.netlify/functions/gemini', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
@@ -140,16 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     errorData = await response.json();
                 } catch (e) {
                     const rawErrorText = await response.text();
-                    throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk: ${rawErrorText.substring(0, 200)}...`);
+                    throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk.`);
                 }
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status} - ${response.statusText}`);
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
             }
 
             const data = await response.json();
             if (data.error) {
                 outputElement.innerHTML = `<div class="error-message">${data.error}</div>`;
             } else {
-                // YANITI MARKDOWN'DAN HTML'E ÇEVİRİYORUZ
                 outputElement.innerHTML = marked.parse(data.response);
             }
         } catch (error) {
@@ -165,9 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonSelect.disabled = status;
         unitSelect.disabled = status;
         getTopicExplanationBtn.disabled = status;
-        questionTypeSelect.disabled = status;
         questionInput.disabled = status;
-        underlinedPhraseInput.disabled = status;
+        detailsInput.disabled = status;
         askTextQuestionBtn.disabled = status;
     }
 });
