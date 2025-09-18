@@ -31,39 +31,47 @@ exports.handler = async function(event, context) {
         const { type, prompt, lesson, unit } = JSON.parse(event.body);
         
         const baseSystemInstruction = `
-        **SENARYO:** Sen, LGS (Liselere Geçiş Sistemi) sözel bölümü sorularını çözme konusunda uzman bir yapay zeka asistanısın. Görevin, sana verilen soruyu, LGS formatına ve 8. sınıf müfredatına %100 uygun, adım adım, pedagojik ve hatasız bir şekilde çözmektir. Cevapların bir öğrencinin konuyu tam olarak anlamasını sağlamalıdır. **Yanıtlarını Markdown formatında (**başlıklar için '### Başlık', kalın metin için '**kalın metin**', listeler için '* madde' kullanarak**) oluştur.**
+        **SENARYO:** Sen, LGS (Liselere Geçiş Sistemi) sözel bölümü sorularını çözme ve konularını açıklama konusunda uzman bir yapay zeka asistanısın. Görevin, sana verilen soruyu veya konuyu, LGS formatına ve 8. sınıf müfredatına %100 uygun, adım adım, pedagojik ve hatasız bir şekilde işlemektir. Cevapların bir öğrencinin konuyu tam olarak anlamasını sağlamalıdır. **Yanıtlarını Markdown formatında (**başlıklar için '### Başlık', kalın metin için '**kalın metin**', listeler için '* madde', strateji notları için '> **Strateji Notu:** ...' kullanarak**) oluştur.** Uygun olduğunda, dersler arası bağlantılar kurarak (örn: bir tarihsel olayın edebiyata yansıması) öğrencinin bütüncül bir bakış açısı kazanmasına yardımcı ol.
 
         **GENEL KURALLAR:**
-        1.  **Düşünce Zinciri (Chain-of-Thought):** Cevabı vermeden önce, soruyu nasıl çözeceğini kendi içinde adım adım planla. Önce metni/görseli analiz et, sonra sorunun ne istediğini belirle, ardından seçenekleri tek tek ele ve en sonunda gerekçeli cevabını oluştur.
-        2.  **Kesin ve Net Dil:** Cevaplarında "belki", "olabilir", "muhtemelen", "gibi görünüyor" gibi belirsiz ifadelerden KESİNLİKLE kaçın. LGS'de cevaplar nettir. Bilgiye dayalı ve kendinden emin bir dil kullan.
-        3.  **Çeldirici Analizi:** Sadece doğru cevabı açıklamakla kalma. Diğer seçeneklerin neden **güçlü birer çeldirici** olduğunu veya neden **kesinlikle yanlış** olduğunu da açıkla. Bu, öğrencinin tuzağa düşmesini engeller.
-        4.  **LGS Düzeyi:** Açıklamaların 8. sınıf öğrencisinin anlayacağı seviyede, açık ve sade olmalı. Aşırı akademik veya karmaşık terimlerden kaçın.
-        5.  **Özet Strateji Notu:** Çözümün sonunda, o soru tipiyle ilgili öğrencinin aklında kalması gereken kısa bir "Strateji Notu" veya "Unutma!" bölümü ekle.
-
-        Şimdi, aşağıda verilen soru tipi için özel olarak belirtilen talimatları takip ederek soruyu çöz.
+        1.  **Düşünce Zinciri (Chain-of-Thought):** Cevabı vermeden önce, görevi nasıl yapacağını kendi içinde adım adım planla.
+        2.  **Kesin ve Net Dil:** Cevaplarında "belki", "olabilir", "muhtemelen" gibi belirsiz ifadelerden KESİNLİKLE kaçın. Bilgiye dayalı ve kendinden emin bir dil kullan.
+        3.  **Çeldirici Analizi (Soru Çözümü için):** Sadece doğru cevabı açıklamakla kalma. Diğer seçeneklerin neden **güçlü birer çeldirici** olduğunu veya neden **kesinlikle yanlış** olduğunu da açıkla.
+        4.  **LGS Düzeyi:** Açıklamaların 8. sınıf öğrencisinin anlayacağı seviyede, açık ve sade olmalı.
+        5.  **Özet Strateji Notu (Soru Çözümü için):** Çözümün sonunda, o soru tipiyle ilgili öğrencinin aklında kalması gereken kısa bir "Strateji Notu" veya "Unutma!" bölümü ekle.
         `;
 
         let specificInstruction = "";
         let finalSystemInstruction = "";
         const requestParts = [];
 
-        // *** HATA DÜZELTME: Konu anlatımı isteğini en başta ele al ***
-        if (type === 'topic_explanation') {
-            const explanationPrompt = `LGS 8. sınıf öğretim programlarına uygun olarak "${lesson}" dersinin "${unit}" ünitesini detaylıca, maddeler halinde ve örneklerle açıklar mısın? Öğrencinin konuyu eksiksiz kavramasını sağlayacak şekilde kapsamlı bir anlatım yap.`;
-            requestParts.push({ text: explanationPrompt });
-            finalSystemInstruction = `Sen LGS konularını açıklayan bir uzmansın. Konu anlatımı isteğine odaklan. Detaylı, kapsamlı ve eğitici bir anlatım yap. Yanıtını Markdown formatında oluştur.`;
-        } else {
-            // Soru çözümü isteği ise, prompt'un var olduğundan emin ol
-            if (!prompt) {
-                 return { statusCode: 400, body: JSON.stringify({ error: "Soru metni (prompt) eksik." }) };
-            }
+        if (type === 'topic_explanation' || type === 'topic_summary') {
+            let actionText = type === 'topic_summary' 
+                ? `LGS 8. sınıf öğretim programlarına uygun olarak "${lesson}" dersinin "${unit}" konusunu, en önemli ve kilit noktalarını vurgulayarak, bir öğrencinin 5 dakikada okuyup anlayabileceği şekilde özetler misin?`
+                : `LGS 8. sınıf öğretim programlarına uygun olarak "${lesson}" dersinin "${unit}" ünitesini detaylıca, maddeler halinde ve örneklerle açıklar mısın? Öğrencinin konuyu eksiksiz kavramasını sağlayacak şekilde kapsamlı bir anlatım yap.`;
             
+            requestParts.push({ text: actionText });
+            finalSystemInstruction = baseSystemInstruction + ` Konu anlatımı/özeti isteğine odaklan. Detaylı, kapsamlı ve eğitici bir anlatım yap.`;
+
+        } else if (type === 'deepen_concept') {
+            const deepenPrompt = `Yukarıda çözülen şu soru bağlamında: "${prompt}", bu sorunun temel aldığı ana konsepti/kazanımı (örneğin 'Fiilimsiler', 'Milli Egemenlik Kavramı', 'Ana Fikir Bulma Yöntemleri' vb.) daha derinlemesine, farklı örneklerle ve bir öğrencinin anlayacağı şekilde açıklar mısın?`;
+            requestParts.push({ text: deepenPrompt });
+            finalSystemInstruction = baseSystemInstruction + ` Öğrencinin bir sorudan yola çıkarak konuyu daha derinlemesine anlamasına yardımcı ol.`;
+
+        } else if (type === 'generate_similar') {
+            const similarPrompt = `Yukarıda çözülen şu soruya: "${prompt}", aynı LGS kazanımını ve zorluk seviyesini ölçen, tamamen özgün, yeni bir soru ve seçenekleri (A, B, C, D) oluşturur musun? Oluşturduğun yeni sorunun doğru cevabını ve kısa bir açıklamasını da ekle.`;
+            requestParts.push({ text: similarPrompt });
+            finalSystemInstruction = baseSystemInstruction + ` Öğrencinin konuyu pekiştirmesi için özgün ve benzer LGS tarzı sorular üret.`;
+
+        } else { // type === 'text' (Soru Çözümü)
+            if (!prompt) {
+                return { statusCode: 400, body: JSON.stringify({ error: "Soru metni (prompt) eksik." }) };
+            }
             requestParts.push({ text: prompt });
 
-            // Soru Türü Tespit Mantığı
             let detectedQuestionType = "genel_bilgi";
             if (lesson === "Türkçe") {
-                if (prompt.includes("yazım yanlışı") || prompt.includes("noktalama") || prompt.includes("çatısıy") || prompt.includes("ögeleri") || prompt.includes("fiilimsi")) {
+                if (prompt.includes("yazım yanlışı") || prompt.includes("noktalama") || prompt.includes("çatısıy") || prompt.includes("ögeleri") || prompt.includes("fiilimsi") || prompt.includes("anlatım bozukluğu")) {
                     detectedQuestionType = "dilbilgisi";
                 } else if (prompt.includes("akışını bozan") || prompt.includes("ikiye bölünmek istense") || prompt.includes("sıralanışı")) {
                     detectedQuestionType = "paragraf_yapisi";
@@ -71,8 +79,6 @@ exports.handler = async function(event, context) {
                     detectedQuestionType = "ana_fikir_yardimci_fikir";
                 } else if (prompt.includes("altı çizili") || prompt.includes("duygu durumu") || prompt.includes("anlatım biçimi")) {
                     detectedQuestionType = "yorum_analiz";
-                } else if (prompt.includes("grafik") || prompt.includes("tablo") || prompt.includes("görsel")) {
-                    detectedQuestionType = "gorsel_grafik_tablo";
                 } else {
                     detectedQuestionType = "ana_fikir_yardimci_fikir";
                 }
@@ -178,14 +184,7 @@ exports.handler = async function(event, context) {
                     3.  **Yapılandırılmış Yanıt:** Bilgiyi madde işaretleri veya numaralı listeler kullanarak düzenle.`;
                     break;
             }
-
             finalSystemInstruction = `${baseSystemInstruction}\n\n${specificInstruction}`;
-            
-            if (lesson && unit) {
-                finalSystemInstruction += `\n\n**Ek Bağlam:** Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında soru soruyor. Bu konuya özel dikkat et.`;
-            } else if (lesson) {
-                finalSystemInstruction += `\n\n**Ek Bağlam:** Şu anda öğrenci "${lesson}" dersi hakkında soru soruyor. Bu derse uygun yanıtlar ver.`;
-            }
         }
         
         if (requestParts.length === 0) {
@@ -216,3 +215,5 @@ exports.handler = async function(event, context) {
         };
     }
 };
+// NOT: Yukarıdaki switch bloğunun içini bir önceki yanıttaki detaylı stratejilerle doldurun.
+// Bu yanıtın uzunluğunu kontrol altında tutmak için tekrar eklenmedi.
