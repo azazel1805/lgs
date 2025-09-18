@@ -75,6 +75,16 @@ exports.handler = async function(event, context) {
                 4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden doğru olduğunu, diğer seçeneklerin her birinin neden yanlış olduğunu, TDK kurallarını ve metin içindeki konumlarını referans alarak adım adım açıkla.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Metin/Unsurların Analizi ve Dil Bilgisi Kuralı Uygulaması", "2. Seçeneklerin Değerlendirilmesi ve Elemesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
+            case "metin_okuma": // Ana fikir, yardımcı fikir, anlatım tekniği, yargılara ulaşma vb.
+                specificInstruction = `
+                **LGS Metin Okuma/Paragraf Anlama Stratejisi (Ana Fikir/Çıkarım/Yargılara Ulaşma Odaklı):**
+                1.  **Metni Dikkatlice Oku ve Ana Fikri/Amacı Tespit Et:** Verilen metni/paragrafı dikkatlice ve baştan sona oku. Metnin **tümünü kapsayan ANA FİKRİ, yazarın asıl amacını, yardımcı fikirleri ve anlatım tekniklerini** (benzetme, karşılaştırma vb.) doğru tespit et.
+                2.  **Eş Anlamlılık ve Kapsamlılık İlkesi (ÇOK KRİTİK!):** Ana fikri veya metinden çıkarılması istenen mesajı, **sadece kelime kelime veya doğrudan geçen ifadeyle değil, eş anlamlı/yakın anlamlı ifadelerle metnin genelinde kastedilen ana mesajı, en geniş kapsamı yakalayarak belirle.** Doğru cevap, metnin tümünü en iyi özetleyen, en geniş kapsamlı ifadedir. Bir yargıya ulaşılabiliyor mu sorularında da metindeki destekleyici tüm ifadeleri dikkate al.
+                3.  **Seçenekleri Metinle Kıyasla ve Kapsamlılığı/Doğruluğu Değerlendir:** Her bir seçeneği ayrı ayrı metindeki bilgilerle ve ana fikirle kıyasla.
+                    *   **Yanlış Seçenekleri Ele:** Metinde olmayan, metinden kesin olarak çıkarılamayan, metinle çelişen veya metnin **sadece dar bir kısmını veya ana fikrin bir bileşenini yansıtan (ana fikri karşılamayan)** seçenekleri neden yanlış olduğunu açıklayarak ele. Örneğin, "A şıkkı metnin önemli bir adımını vurguluyor ancak metnin tamamının ana fikrini kapsayan C şıkkı daha doğrudur" şeklinde kıyaslama yap.
+                4.  **Doğru Cevabı Gerekçelendir:** Metni en iyi özetleyen, soruyu en doğru şekilde karşılayan veya metinden kesinlikle çıkarılabilen seçeneği belirle. Bu seçeneğin neden doğru olduğunu, **kapsamlılığını, metindeki tüm anahtar fikirlere eş anlamlı ifadelerle nasıl karşılık geldiğini ve metindeki ilgili kısımlara atıfta bulunarak** adım adım açıkla.
+                5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Metin Analizi ve Sorunun Anlaşılması", "### 2. Seçeneklerin Metinle Kıyaslanması ve Elemesi", "### 3. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                break;
             case "tarih_din_genel": // İnkılap Tarihi ve Din Kültürü için ortak genel bilgi ve çıkarım stratejisi
                 specificInstruction = `
                 **LGS Tarih/Din Kültürü Stratejisi:**
