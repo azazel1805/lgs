@@ -142,4 +142,177 @@ textarea {
 
 .primary-btn {
     display: inline-block;
-    background: linear-gradient(45deg, var(--accent-color), #2980b9
+    background: linear-gradient(45deg, var(--accent-color), #2980b9);
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
+.primary-btn:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.output-area {
+    background-color: #fdfdfd;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-top: 1rem;
+    font-size: 1rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    color: var(--text-color);
+    flex-grow: 1; /* Kartın altını doldurmasını sağlar */
+}
+
+.output-area p.placeholder {
+    color: #95a5a6;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+/* AI Yanıt Formatlaması için Özel Stiller */
+.output-area h3 { /* **Başlık:** gibi ifadeler için */
+    color: var(--primary-color);
+    margin-top: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 0.3rem;
+}
+
+.output-area ul, .output-area ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.output-area li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.output-area strong, .output-area b { /* *kelime* veya **kelime** gibi ifadeler için */
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.output-area code { /* `kod` gibi ifadeler için */
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.note {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+    padding-left: 0;
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--primary-color);
+    color: #bdc3c7;
+    font-size: 0.9em;
+    margin-top: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+/* Loading Indicator */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rem;
+    color: var(--accent-color);
+    font-size: 1rem;
+    font-weight: 600;
+    min-height: 150px;
+}
+
+.spinner {
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--accent-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    header {
+        padding: 1.5rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    header p {
+        font-size: 0.9rem;
+    }
+
+    main {
+        gap: 1rem;
+    }
+
+    .card {
+        padding: 1rem 1.2rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+}
