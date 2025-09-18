@@ -2,26 +2,12 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@googl
 
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ message: 'Method Not Allowed' }),
-        };
+        return { statusCode: 405, body: JSON.stringify({ message: 'Method Not Allowed' }) };
     }
 
-    let GEMINI_API_KEY;
-    if (process.env.NETLIFY_DEV) {
-        require('dotenv').config();
-        GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    } else {
-        GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    }
-
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
-        console.error("Gemini API anahtarı bulunamadı.");
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: "Sunucu yapılandırma hatası: Gemini API anahtarı eksik." }),
-        };
+        return { statusCode: 500, body: JSON.stringify({ error: "Sunucu yapılandırma hatası: Gemini API anahtarı eksik." }) };
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -42,74 +28,135 @@ exports.handler = async function(event, context) {
     ];
 
     try {
-        const { type, prompt, lesson, unit, questionType } = JSON.parse(event.body);
+        const { type, prompt, lesson, unit } = JSON.parse(event.body);
         
-        let baseSystemInstruction = `Sen bir LGS (8. sınıf) müfredatına hakim, uzman bir yapay zeka asistanısın. Tüm cevaplarını Türkçe, 8. sınıf seviyesine uygun, anlaşılır ve bir öğretmen gibi detaylı vermelisin. Görevin, LGS sorularında en doğru ve kapsamlı yanıtı sağlamaktır. **Yanıtlarını Markdown formatında (**başlıklar için '### Başlık', kalın metin için '**kalın metin**', listeler için '* madde' kullanarak**) oluştur.**
+        const baseSystemInstruction = `
+        **SENARYO:** Sen, LGS (Liselere Geçiş Sistemi) sözel bölümü sorularını çözme konusunda uzman bir yapay zeka asistanısın. Görevin, sana verilen soruyu, LGS formatına ve 8. sınıf müfredatına %100 uygun, adım adım, pedagojik ve hatasız bir şekilde çözmektir. Cevapların bir öğrencinin konuyu tam olarak anlamasını sağlamalıdır. **Yanıtlarını Markdown formatında (**başlıklar için '### Başlık', kalın metin için '**kalın metin**', listeler için '* madde' kullanarak**) oluştur.**
 
-        **ÖNEMLİ KURALLAR:**
-        1.  **Kullanıcı Prompt'una Mutlak ve Koşulsuz Öncelik:** Kullanıcının metin kutusunda belirttiği altı çizili ifade, anahtar kavram, numaralı fiiller, veya kritik sayısal/grafik verilerinin metinsel aktarımı gibi bilgiler, görsel algısından bağımsız olarak KESİNLİKLE VE HER ZAMAN ESAS ALINMALIDIR. Eğer kullanıcı bir SORU NUMARASI belirtmişse (örn. "4. soruyu çöz" gibi), görselde birden fazla soru olsa bile SADECE O SORUYA ODAKLAN! Bu kurallara mutlak ve şaşmaz bir şekilde uy!
-        2.  **Sadece Doğruyu Seç (Veya Durumu Açıkla):** Kendi hesaplamaların veya analizlerin sonucunda bulduğun değer, seçeneklerdeki herhangi bir değerle tam olarak EŞLEŞMİYorsa, o zaman **KESİNLİKLE HİÇBİR SEÇENEĞİ İŞARETLEME.** Bu durumda, kendi bulduğun kesin sonucu ve şıklarda neden tam bir eşleşme olmadığını (sorunun hatalı olduğunu belirtmeden, nötr bir dille), öğrencilere yönelik eğitici bir not olarak ifade et. Hiçbir zaman "bu şık ideal değil", "soru kötü yazılmış" veya "seçeneklerde yok" gibi eleştirel yorumlar yapma. Görevin, mevcut seçenekler içinden en doğru olanı tereddütsüz belirlemektir. Seçtiğin şık, verilenler arasında mutlak olarak en doğru seçenektir.
-        3.  **Matematiksel Eşdeğerlikleri Doğru Algıla:** Seçeneklerdeki matematiksel ifadelerin (üslü sayılar, köklü ifadeler, eşitsizlikler vb.) sayısal karşılıklarını hatasız hesapla ve senin bulduğun sonuçla tam olarak eşleşip eşleşmediğini kontrol et.`;
+        **GENEL KURALLAR:**
+        1.  **Düşünce Zinciri (Chain-of-Thought):** Cevabı vermeden önce, soruyu nasıl çözeceğini kendi içinde adım adım planla. Önce metni/görseli analiz et, sonra sorunun ne istediğini belirle, ardından seçenekleri tek tek ele ve en sonunda gerekçeli cevabını oluştur.
+        2.  **Kesin ve Net Dil:** Cevaplarında "belki", "olabilir", "muhtemelen", "gibi görünüyor" gibi belirsiz ifadelerden KESİNLİKLE kaçın. LGS'de cevaplar nettir. Bilgiye dayalı ve kendinden emin bir dil kullan.
+        3.  **Çeldirici Analizi:** Sadece doğru cevabı açıklamakla kalma. Diğer seçeneklerin neden **güçlü birer çeldirici** olduğunu veya neden **kesinlikle yanlış** olduğunu da açıkla. Bu, öğrencinin tuzağa düşmesini engeller.
+        4.  **LGS Düzeyi:** Açıklamaların 8. sınıf öğrencisinin anlayacağı seviyede, açık ve sade olmalı. Aşırı akademik veya karmaşık terimlerden kaçın.
+        5.  **Özet Strateji Notu:** Çözümün sonunda, o soru tipiyle ilgili öğrencinin aklında kalması gereken kısa bir "Strateji Notu" veya "Unutma!" bölümü ekle.
+
+        Şimdi, aşağıda verilen soru tipi için özel olarak belirtilen talimatları takip ederek soruyu çöz.
+        `;
 
         let specificInstruction = "";
+        
+        // --- Soru Türü Tespit Mantığı ---
+        // Kullanıcının belirttiği metin kutusundaki anahtar kelimeler ve seçilen derse göre otomatik tespit
+        let detectedQuestionType = "genel_bilgi"; // Varsayılan
+        if (lesson === "Türkçe") {
+            if (prompt.includes("yazım yanlışı") || prompt.includes("noktalama") || prompt.includes("çatısıy") || prompt.includes("ögeleri") || prompt.includes("fiilimsi")) {
+                detectedQuestionType = "dilbilgisi";
+            } else if (prompt.includes("akışını bozan") || prompt.includes("ikiye bölünmek istense") || prompt.includes("sıralanışı")) {
+                detectedQuestionType = "paragraf_yapisi";
+            } else if (prompt.includes("asıl anlatılmak istenen") || prompt.includes("çıkarılamaz") || prompt.includes("ulaşılamaz") || prompt.includes("değinilmemiştir") || prompt.includes("yardımcı düşünce")) {
+                detectedQuestionType = "ana_fikir_yardimci_fikir";
+            } else if (prompt.includes("altı çizili") || prompt.includes("duygu durumu") || prompt.includes("anlatım biçimi")) {
+                detectedQuestionType = "yorum_analiz";
+            } else if (prompt.includes("grafik") || prompt.includes("tablo") || prompt.includes("görsel")) {
+                detectedQuestionType = "gorsel_grafik_tablo";
+            } else {
+                detectedQuestionType = "ana_fikir_yardimci_fikir"; // Türkçe için genel varsayılan
+            }
+        } else if (lesson === "T.C. İnkılap Tarihi ve Atatürkçülük") {
+            detectedQuestionType = "tarih";
+        } else if (lesson === "Din Kültürü ve Ahlâk Bilgisi") {
+            detectedQuestionType = "din_kulturu";
+        } else if (lesson === "Yabancı Dil (İngilizce)") {
+            detectedQuestionType = "yabanci_dil_ingilizce";
+        }
 
-        switch (questionType) {
-            case "yorum_analiz": // Altı çizili ifade, duygu durumu, anlatım biçimi, mecazi anlam vb.
+        switch (detectedQuestionType) {
+            case "yorum_analiz":
                 specificInstruction = `
-                **LGS Yorumlama/Analiz Stratejisi (Spesifik İfade/Duygu Odaklı - Türkçe/Sosyal):**
-                1.  **Soruyu ve Odak İfadeyi Kesin Analiz Et:** Verilen metni ve özellikle kullanıcının belirttiği altı çizili ifadeyi/anahtar kavramı derinlemesine analiz et. İfadenin **mecazi, yan ve sembolik anlamlarına** odaklan. Soyut fiillerin ne tür somut, aktif bir eylemi veya katkıyı ima ettiğini belirle. Genel temalardan ziyade, ifadenin **özgül, aktif, eylemsel veya duygu durumunu** metindeki ipuçlarıyla (tarihsel olaylar, karakterler, vb.) ilişkilendirerek bul.
-                2.  **Seçenekleri Odak İfadeyle Titizlikle Ele:** Her seçeneği, altı çizili ifadenin özgül, aktif, mecazi veya duygu durumuna yönelik anlamıyla ve metnin tamamıyla kıyasla.
-                    *   Yanlış seçenekleri neden hatalı veya eksik olduğunu, özellikle ifadenin spesifik anlamına tam karşılık gelmediğini, pasif (örn. tema yapmak) ile aktif (örn. mücadeleye katılmak) arasındaki farkı net belirterek açıkla. Doğru cevap, ifadenin spesifik anlamına EN DOĞRUDAN karşılık gelendir.
-                3.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin, diğerlerinden neden daha üstün ve ifadenin tüm mecazi unsurlarını/duygu durumunu en iyi yansıtan, verilen seçenekler arasında kesinlikle doğru olan tek cevap olduğunu, metindeki somut kanıtlarla ve mantıksal çıkarımlarla adım adım, açık ve anlaşılır şekilde gerekçelendir.
-                4.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Sorunun ve Odak İfadenin Analizi", "### 2. Seçeneklerin Titizlikle Elemesi ve En Doğru Cevabın Belirlenmesi", "### 3. Doğru Cevabın Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                **LGS Yorumlama/Analiz Stratejisi (Spesifik İfade/Duygu Odaklı):**
+                1.  **Soruyu ve Odak İfadeyi Kesin Analiz Et:** Verilen metni ve özellikle kullanıcının belirttiği altı çizili ifadeyi/anahtar kavramı derinlemesine analiz et. İfadenin **mecazi, yan ve sembolik anlamlarına**, ayrıca yazarın/anlatıcının **tutumuna (nesnel, öznel, eleştirel vb.)** odaklan. Soyut fiillerin ne tür somut, aktif bir eylemi veya katkıyı ima ettiğini belirle.
+                2.  **Seçenekleri Odak İfadeyle Titizlikle Ele:** Her seçeneği, altı çizili ifadenin özgül, aktif, mecazi veya duygu durumuna yönelik anlamıyla ve metnin tamamıyla kıyasla. Yanlış seçenekleri neden hatalı veya eksik olduğunu net belirterek açıkla.
+                3.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin, diğerlerinden neden daha üstün ve ifadenin tüm unsurlarını en iyi yansıtan tek cevap olduğunu, metindeki somut kanıtlarla adım adım gerekçelendir.
+                4.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Sorunun ve Odak İfadenin Analizi", "### 2. Seçeneklerin Titizlikle Elemesi", "### 3. Doğru Cevabın Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "dilbilgisi": // Fiil çatısı, cümle türleri, yazım, noktalama, anlatım bozukluğu vb.
+            case "dilbilgisi":
                 specificInstruction = `
-                **LGS Dil Bilgisi (Yazım/Noktalama vb.) Stratejisi:**
-                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya kullanıcının belirttiği dil bilgisi unsurlarını dikkatlice ve eksiksiz oku. **Eğer metin içinde (I), (II), (III) gibi numaralandırılmış yerler varsa, bu numaraların hangi kelimeden veya ifadeden hemen sonra geldiğini KESİNLİKLE doğru tespit et.** İlgili dil bilgisi kuralını (fiil çatısı, cümle türü, noktalama, yazım, anlatım bozukluğu vb.) kesin ve doğru bir şekilde uygula.
-                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir", "tartışmalı olabilir" gibi ifadelerden kesinlikle kaçın.)
-                    *   **Üç Nokta (...) Kullanımı:** Üç nokta, **tamamlanmamış cümlelerin sonuna** (yüklemi olmayan) veya **sayılan örneklerin devam ettiğini belirtmek için** (örneğin "...ve daha niceleri" gibi bir ifadeden sonra) konur.
-                    *   **Büyük Harflerin Kullanımı:** Özel isimler, kurum ve kuruluş adları büyük harfle başlar. Ancak, "Türk medeniyeti", "Türk sanatı" gibi tamlamalarda ikinci kelime (medeniyet, sanat) küçük harfle başlar. "Kızı Ümit Meriç" gibi akrabalık bildiren ifadelerde (unvan değilse) akrabalık adı küçük harfle başlar ("kızı Ümit Meriç").
-                    *   **"de/da" ve "ki"nin Yazımı:** Bağlaç olan "de/da" ve "ki" ayrı yazılır, ek olanlar bitişik yazılır. Bu kuralı doğru uygula.
-                3.  **Seçenekleri Titizlikle Ele:** Her bir numaralı yeri veya cümleyi, yukarıdaki kurallara göre değerlendir. Hatalı olan seçenekleri ve neden hatalı olduklarını net bir şekilde belirt. Doğru olan seçeneği işaretle.
-                4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden doğru olduğunu, diğer seçeneklerin her birinin neden yanlış olduğunu, TDK kurallarını ve metin içindeki konumlarını referans alarak adım adım açıkla.
+                **LGS Dil Bilgisi Stratejisi:**
+                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya numaralandırılmış yerleri dikkatlice oku. İlgili dil bilgisi kuralını (fiil çatısı, **cümlenin ögeleri, fiilimsiler,** cümle türü, noktalama, yazım, anlatım bozukluğu vb.) kesin ve doğru bir şekilde uygula.
+                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir" gibi ifadelerden kesinlikle kaçın.) TDK kurallarını referans al.
+                3.  **Seçenekleri Titizlikle Ele:** Her bir numaralı yeri veya cümleyi, ilgili kurallara göre değerlendir. Hatalı olan seçenekleri ve neden hatalı olduklarını net bir şekilde belirt.
+                4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden doğru olduğunu, diğer seçeneklerin her birinin neden yanlış olduğunu TDK kurallarını referans alarak adım adım açıkla.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Metin/Unsurların Analizi ve Dil Bilgisi Kuralı Uygulaması", "2. Seçeneklerin Değerlendirilmesi ve Elemesi", "3. Doğru Cevap ve Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "metin_okuma": // Ana fikir, yardımcı fikir, anlatım tekniği, yargılara ulaşma vb.
+            case "ana_fikir_yardimci_fikir":
                 specificInstruction = `
-                **LGS Metin Okuma/Paragraf Anlama Stratejisi (Ana Fikir/Çıkarım/Yargılara Ulaşma Odaklı):**
-                1.  **Metni Dikkatlice Oku ve Ana Fikri/Amacı Tespit Et:** Verilen metni/paragrafı dikkatlice ve baştan sona oku. Metnin **tümünü kapsayan ANA FİKRİ, yazarın asıl amacını, yardımcı fikirleri ve anlatım tekniklerini** (benzetme, karşılaştırma vb.) doğru tespit et.
-                2.  **Eş Anlamlılık ve Kapsamlılık İlkesi (ÇOK KRİTİK!):** Ana fikri veya metinden çıkarılması istenen mesajı, **sadece kelime kelime veya doğrudan geçen ifadeyle değil, eş anlamlı/yakın anlamlı ifadelerle metnin genelinde kastedilen ana mesajı, en geniş kapsamı yakalayarak belirle.** Doğru cevap, metnin tümünü en iyi özetleyen, en geniş kapsamlı ifadedir. Bir yargıya ulaşılabiliyor mu sorularında da metindeki destekleyici tüm ifadeleri dikkate al.
-                3.  **Seçenekleri Metinle Kıyasla ve Kapsamlılığı/Doğruluğu Değerlendir:** Her bir seçeneği ayrı ayrı metindeki bilgilerle ve ana fikirle kıyasla.
-                    *   **Yanlış Seçenekleri Ele:** Metinde olmayan, metinden kesin olarak çıkarılamayan, metinle çelişen veya metnin **sadece dar bir kısmını veya ana fikrin bir bileşenini yansıtan (ana fikri karşılamayan)** seçenekleri neden yanlış olduğunu açıklayarak ele. Örneğin, "A şıkkı metnin önemli bir adımını vurguluyor ancak metnin tamamının ana fikrini kapsayan C şıkkı daha doğrudur" şeklinde kıyaslama yap.
-                4.  **Doğru Cevabı Gerekçelendir:** Metni en iyi özetleyen, soruyu en doğru şekilde karşılayan veya metinden kesinlikle çıkarılabilen seçeneği belirle. Bu seçeneğin neden doğru olduğunu, **kapsamlılığını, metindeki tüm anahtar fikirlere eş anlamlı ifadelerle nasıl karşılık geldiğini ve metindeki ilgili kısımlara atıfta bulunarak** adım adım açıkla.
+                **LGS Paragraf Anlama Stratejisi (Ana Fikir/Çıkarım Odaklı):**
+                1.  **Metni Dikkatlice Oku ve Amacı Tespit Et:** Metnin **tümünü kapsayan ANA FİKRİ, yazarın asıl amacını ve yardımcı fikirleri** doğru tespit et.
+                2.  **Eş Anlamlılık ve Kapsamlılık İlkesi (ÇOK KRİTİK!):** Doğru cevap, metnin sadece bir kısmını değil, **tamamını en iyi özetleyen, en geniş kapsamlı ifadedir.** Kelime kelime aynı olmak zorunda değildir, eş anlamlı ifadelerle genel mesajı yakalamalıdır.
+                3.  **Seçenekleri Metinle Kıyasla:** Her bir seçeneği metindeki bilgilerle kıyasla. Metinde olmayan, metinle çelişen veya metnin **sadece dar bir kısmını yansıtan** seçenekleri neden yanlış olduğunu açıklayarak ele.
+                4.  **Doğru Cevabı Gerekçelendir:** Metni en iyi özetleyen veya metinden kesinlikle çıkarılabilen seçeneğin neden doğru olduğunu, metindeki ilgili kısımlara atıfta bulunarak adım adım açıkla.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Metin Analizi ve Sorunun Anlaşılması", "### 2. Seçeneklerin Metinle Kıyaslanması ve Elemesi", "### 3. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "tarih_din_genel": // İnkılap Tarihi ve Din Kültürü için ortak genel bilgi ve çıkarım stratejisi
+            case "paragraf_yapisi":
                 specificInstruction = `
-                **LGS Tarih/Din Kültürü Stratejisi:**
-                1.  **Metni/Soruyu Dikkatlice Oku ve Ana Kavramları Tespit Et:** Verilen metni/soruyu dikkatlice ve eksiksiz oku. Tarihsel olayları, kronolojiyi, kavramları, şahsiyetleri veya dini değerleri/kavramları doğru tespit et. Metindeki olaylar arasındaki neden-sonuç ilişkisini ve kronolojik sırayı doğru anla.
-                2.  **LGS Müfredatına Göre KESİN BİLGİ ve Çıkarım:**
-                    *   Soruyu LGS 8. sınıf müfredatındaki **kesin ve teyit edilmiş bilgilere dayanarak** yanıtla. **Asla hatalı coğrafi (örn. Doğu/Batı Trakya gibi), tarihsel veya dini kavramsal bilgi (örn. zekâtın kimlere verilemeyeceği gibi temel kurallar) kullanma.**
-                    *   Metinden veya görselden çıkarılması gereken yargıları, **metindeki neden-sonuç ilişkilerini ve kronolojiyi** temel alarak, müfredat bilgisiyle birleştirerek mantıksal ve doğru çıkarımlar yap.
-                3.  **Seçenekleri Kesin Bilgiyle Kıyasla:** Her bir seçeneği ayrı ayrı metindeki bilgilerle, metinden çıkarılabilecek en mantıklı sonuçlarla ve LGS müfredatındaki kesin bilgilerle kıyasla.
-                    *   Yanlış seçenekleri neden hatalı (metinle çelişen, metinden çıkarılamayan, kesin bilgiyle çelişen vb.) olduğunu açıklayarak ele.
-                4.  **Doğru Cevabı Gerekçelendir:** Metindeki veya sorudaki yargıları doğru/yanlış olarak belirledikten sonra, doğru yargıları içeren seçeneği belirle. Bu seçeneğin neden doğru olduğunu, ilgili müfredat bilgisi ve metindeki destekleyici ifadelere atıfta bulunarak adım adım açıkla.
-                5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Sorunun ve Metnin/Görselin Analizi", "### 2. LGS Müfredatına Göre Bilgi ve Çıkarım", "### 3. Seçeneklerin Değerlendirilmesi ve Elemesi", "### 4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                **LGS Paragraf Yapısı Stratejisi (Sıralama/Akışı Bozma/Bölme):**
+                1.  **Sorunun Amacını Belirle:** Soru ne istiyor? Anlamlı bir paragraf oluşturma mı, anlam bütünlüğünü bozan cümleyi bulma mı, yoksa paragrafı ikiye bölme mi?
+                2.  **Anlamsal ve Yapısal Bağlantıları Analiz Et:** Cümleler arasındaki **anlam akışını, zaman kronolojisini ve mantıksal bağlantıyı** (çünkü, bu nedenle, ancak gibi bağlayıcı unsurlar) takip et.
+                3.  **Stratejiyi Uygula:**
+                    *   **Akışı Bozan Cümle:** Konunun farklı bir yönüne geçen veya aniden başka bir konuya atlayan cümleyi tespit et.
+                    *   **İkiye Bölme:** Konunun akışının değiştiği, yeni bir düşünceye geçildiği ilk cümleyi bul.
+                    *   **Sıralama:** Kendisinden önce başka cümle olduğunu ima eden bağlaçlar içermeyen, en genel "giriş cümlesini" bul ve diğerlerini mantıksal sıraya koy.
+                4.  **Yapılandırılmış Yanıt:** Cevabını "1. Sorunun Amacı ve Strateji", "2. Cümleler Arası Anlamsal ve Yapısal Analiz", "3. Doğru Cevap ve Adım Adım Gerekçesi" başlıkları ile yapılandır.`;
                 break;
-            case "yabanci_dil_ingilizce": // Yabancı Dil (İngilizce) için strateji
+            case "gorsel_grafik_tablo":
+                specificInstruction = `
+                **LGS Görsel/Grafik/Tablo Okuma Stratejisi:**
+                1.  **Görseli ve Soruyu Dikkatlice Analiz Et:** Görseldeki (harita, karikatür, tablo, grafik) TÜM verileri, başlıkları, lejantları (harita anahtarı), dipnotları ve sayısal değerleri dikkatlice incele.
+                2.  **SADECE GÖRSELDEKİ BİLGİYE ODAKLAN (ÇOK KRİTİK!):** Kendi ön bilgilerini veya varsayımlarını KESİNLİKLE kullanma. Yorumların ve çıkarımların %100 görseldeki verilere dayanmalıdır.
+                3.  **Seçenekleri Görsel Verilerle Eşleştir:** Her bir seçeneği tek tek ele al. Seçenekteki ifadenin görselde bir karşılığı olup olmadığını kontrol et.
+                4.  **Doğru Cevabı Gerekçelendir:** Doğru seçeneğin görseldeki hangi veriyle desteklendiğini net bir şekilde göster. Yanlış seçeneklerin neden yanlış olduğunu (görselde bilgi yok, görseldeki bilgiyle çelişiyor vb.) açıkla.
+                5.  **Yapılandırılmış Yanıt:** Cevabını "1. Görselin ve Sorunun Analizi", "2. Seçeneklerin Görsel Verilerle Karşılaştırılması", "3. Doğru Cevap ve Kanıta Dayalı Gerekçesi" başlıkları ile yapılandır.`;
+                break;
+            case "sozel_mantik_muhakeme":
+                specificInstruction = `
+                **LGS Sözel Mantık/Muhakeme Stratejisi:**
+                1.  **Verileri ve Kuralları Analiz Et:** Soruda verilen tüm öncülleri, kişileri, nesneleri, durumları ve kuralları dikkatlice listele.
+                2.  **Tablo veya Şema Oluştur (ÇOK ÖNEMLİ):** Verileri görselleştirmek için bir tablo veya şema oluştur. Bu, bilgileri organize etmenin ve olasılıkları eleminenin en iyi yoludur.
+                3.  **Kesin Bilgileri Yerleştir:** "Ahmet kesinlikle 3. sıradadır" gibi net bilgileri tabloya ilk olarak yerleştir.
+                4.  **İlişkili Bilgileri ve Olasılıkları Değerlendir:** "Ayşe, Can'dan hemen sonradır" gibi ilişkili bilgileri kullanarak boşlukları doldur ve olası senaryoları değerlendir.
+                5.  **Sonuçları Seçeneklerle Karşılaştır:** Oluşturduğun nihai tabloya göre hangi seçeneğin kesinlikle doğru veya kesinlikle yanlış olduğunu belirle.
+                6.  **Yapılandırılmış Yanıt:** Cevabını "1. Verilerin ve Kuralların Listelenmesi", "2. Tablo/Şema Oluşturma ve Kesin Bilgilerin Yerleştirilmesi", "3. Adım Adım Mantıksal Çıkarımlar", "4. Doğru Cevap ve Gerekçesi" başlıkları ile yapılandır.`;
+                break;
+            case "tarih":
+                specificInstruction = `
+                **LGS İnkılap Tarihi Stratejisi:**
+                1.  **Metni/Soruyu Dikkatlice Oku ve Ana Kavramları Tespit Et:** Verilen metni/soruyu dikkatlice oku. Tarihsel olayları, kronolojiyi, kavramları (örn: manda ve himaye, millî egemenlik), şahsiyetleri ve bunlar arasındaki neden-sonuç ilişkisini doğru tespit et.
+                2.  **LGS Müfredatına Göre KESİN BİLGİ ve Çıkarım:** Soruyu 8. Sınıf T.C. İnkılap Tarihi ve Atatürkçülük müfredatındaki **kesin ve teyit edilmiş bilgilere dayanarak** yanıtla. Metinden veya görselden çıkarılması gereken yargıları, müfredat bilgisiyle birleştirerek mantıksal ve doğru çıkarımlar yap.
+                3.  **Seçenekleri Kesin Bilgiyle Kıyasla:** Her bir seçeneği metindeki bilgilerle, metinden çıkarılabilecek sonuçlarla ve LGS müfredatındaki kesin bilgilerle kıyasla.
+                4.  **Doğru Cevabı Gerekçelendir:** Doğru seçeneğin neden doğru olduğunu, ilgili müfredat bilgisi ve metindeki destekleyici ifadelere atıfta bulunarak adım adım açıkla.
+                5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Sorunun ve Metnin/Görselin Analizi", "### 2. LGS Müfredatına Göre Bilgi ve Çıkarım", "### 3. Seçeneklerin Değerlendirilmesi", "### 4. Doğru Cevap ve Gerekçesi" başlıkları ile yapılandır.`;
+                break;
+            case "din_kulturu":
+                specificInstruction = `
+                **LGS Din Kültürü Stratejisi:**
+                1.  **Metni/Soruyu Dikkatlice Oku ve Ana Kavramları Tespit Et:** Verilen metni, ayeti, hadisi veya olayı dikkatlice oku. Dini kavramları (örn: kader, kaza, zekât, tevekkül), peygamberlerin hayatından örnekleri ve temel mesajları doğru tespit et.
+                2.  **LGS Müfredatına Göre KESİN BİLGİ ve Çıkarım:** Soruyu 8. Sınıf Din Kültürü ve Ahlak Bilgisi müfredatındaki **kesin ve teyit edilmiş bilgilere dayanarak** yanıtla. Verilen metinden çıkarılması gereken yargıyı, müfredat bilgisiyle birleştirerek mantıksal ve doğru çıkarımlar yap.
+                3.  **Seçenekleri Kesin Bilgiyle Kıyasla:** Her bir seçeneği metindeki mesajla ve LGS müfredatındaki kesin bilgilerle kıyasla. Özellikle kavramların doğru tanımlanıp tanımlanmadığına dikkat et.
+                4.  **Doğru Cevabı Gerekçelendir:** Doğru seçeneğin metindeki mesajla nasıl örtüştüğünü ve diğer seçeneklerin neden yanlış olduğunu ilgili dini kavramları ve müfredat bilgisini kullanarak adım adım açıkla.
+                5.  **Yapılandırılmış Yanıt:** Cevabını "### 1. Sorunun ve Metnin Analizi", "### 2. LGS Müfredatına Göre Kavramsal Bilgi", "### 3. Seçeneklerin Değerlendirilmesi", "### 4. Doğru Cevap ve Gerekçesi" başlıkları ile yapılandır.`;
+                break;
+            case "yabanci_dil_ingilizce":
                 specificInstruction = `
                 **LGS Yabancı Dil (İngilizce) Soru Çözüm Stratejisi:**
-                1.  **Metni/Diyalogu Anla:** Verilen İngilizce metni, diyaloğu, grafiği veya görseli dikkatlice oku ve temel anlamını, ana fikrini, karakterlerin ne söylediğini doğru anla. Kelime dağarcığına ve dil bilgisine MUTLAK DİKKAT ET.
-                2.  **Soruyu Anla:** İngilizce soruyu tam olarak anla (ne soruluyor, ne isteniyor).
-                3.  **Cevabı Metinden Bul/Çıkar:** Metin/diyalog içinden sorunun cevabını destekleyen anahtar kelimeleri veya cümleleri bul. Doğrudan veya dolaylı çıkarım yapılması gerekiyorsa, bunu metindeki kanıtlara dayandır.
-                4.  **Seçenekleri Değerlendir:** Her bir İngilizce seçeneği, metindeki bilgilerle ve sorulan soruyla kıyasla.
-                    *   Metinle çelişen, metinde olmayan veya soruyu yanlış anlayan seçenekleri neden hatalı olduğunu açıklayarak ele.
-                5.  **Doğru Cevabı Gerekçelendir:** Metindeki kanıtlara dayanarak doğru seçeneğin neden en uygun olduğunu adım adım açıkla.
-                6.  **Yapılandırılmış Yanıt:** Cevabını "### 1. English Text/Question Analysis", "### 2. Finding the Answer from the Text", "### 3. Evaluating and Eliminating Options", "### 4. Correct Answer and Justification" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                1.  **Understand the Text/Dialogue:** Read the English text, dialogue, graph, or picture carefully. Understand the main idea and what the characters are saying. Pay close attention to vocabulary and grammar.
+                2.  **Understand the Question:** Fully understand what the question is asking for.
+                3.  **Find Evidence in the Text:** Locate the keywords or sentences in the text/dialogue that support the answer.
+                4.  **Evaluate and Eliminate Options:** Compare each option with the information in the text and the question asked. Explain why the incorrect options are wrong (contradictory, not mentioned, etc.).
+                5.  **Justify the Correct Answer:** Explain step-by-step why the correct option is the most suitable one, based on the evidence from the text.
+                6.  **Structured Response:** Structure your answer using the headings: "### 1. Text/Question Analysis", "### 2. Finding Evidence from the Text", "### 3. Evaluating and Eliminating Options", "### 4. Correct Answer and Justification".`;
                 break;
             case "genel_bilgi":
-            default: // Eğer tanımsız bir tür gelirse veya genel bilgi sorusuysa
+            default:
                 specificInstruction = `
                 **LGS Genel Bilgi/Konu Anlatımı Stratejisi:**
                 1.  **Soruyu Anla:** Sorunun hangi konu veya bilgi alanıyla ilgili olduğunu belirle.
@@ -121,9 +168,9 @@ exports.handler = async function(event, context) {
         let finalSystemInstruction = `${baseSystemInstruction}\n\n${specificInstruction}`;
         
         if (lesson && unit) {
-            finalSystemInstruction += ` Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında bilgi alıyor veya soru soruyor. Bu konuya özel dikkat et.`;
+            finalSystemInstruction += `\n\n**Ek Bağlam:** Şu anda öğrenci "${lesson}" dersinin "${unit}" ünitesi hakkında soru soruyor. Bu konuya özel dikkat et.`;
         } else if (lesson) {
-             finalSystemInstruction += ` Şu anda öğrenci "${lesson}" dersi hakkında bilgi alıyor veya soru soruyor. Bu derse uygun yanıtlar ver.`;
+             finalSystemInstruction += `\n\n**Ek Bağlam:** Şu anda öğrenci "${lesson}" dersi hakkında soru soruyor. Bu derse uygun yanıtlar ver.`;
         }
         
         const requestParts = [];
@@ -137,49 +184,30 @@ exports.handler = async function(event, context) {
         }
         
         if (requestParts.length === 0) {
-            return {
-                statusCode: 400,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ error: "Geçersiz istek: Boş içerik gönderildi. Lütfen metin veya resim sağlayın." }),
-            };
+            return { statusCode: 400, body: JSON.stringify({ error: "Geçersiz istek: Boş içerik gönderildi." }) };
         }
 
         const result = await model.generateContent({
-            contents: [{
-                role: "user",
-                parts: requestParts
-            }],
+            contents: [{ role: "user", parts: requestParts }],
             generationConfig,
             safetySettings,
-            systemInstruction: {
-                parts: [{ text: finalSystemInstruction }]
-            }
+            systemInstruction: { parts: [{ text: finalSystemInstruction }] }
         });
 
         const responseContent = result.response.text();
 
         return {
             statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ response: responseContent }),
         };
 
     } catch (error) {
         console.error('Netlify Fonksiyonu veya Gemini API Hatası:', error);
-        const errorMessage = `AI yanıtı alınırken bir sorun oluştu: ${error.message}`;
-        const errorDetails = process.env.NODE_ENV !== 'production' ? error.stack : undefined;
-
         return {
             statusCode: 500,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ 
-                error: errorMessage,
-                details: errorDetails
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ error: `AI yanıtı alınırken bir sorun oluştu: ${error.message}` }),
         };
     }
 };
