@@ -6,18 +6,19 @@
     <title>LGS(SÖZEL) AI Asistanı</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%93</text></svg>">    
- <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"></head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
 <body>
     <div class="container">
         <header>
             <h1><img src="https://img.icons8.com/plasticine/100/000000/graduation-cap.png" alt="LGS Logo" class="header-logo"> LGS AI Asistanı <span class="beta-tag">BETA</span></h1>
-            <p>8. Sınıf LGS müfredatına uygun, yapay zeka destekli çalışma arkadaşın.</p>
+            <p>8. Sınıf LGS Sözel Bölüm müfredatına uygun, yapay zeka destekli çalışma arkadaşın.</p>
         </header>
 
         <main>
             <section class="lesson-selection-area card">
-                <h2>Ders ve Konu Seçimi</h2>
+                <h2>Konu Anlatımı</h2>
                 <div class="select-group">
                     <label for="lessonSelect">Ders Seçiniz:</label>
                     <select id="lessonSelect">
@@ -38,30 +39,17 @@
             </section>
 
             <section class="ai-interaction-area card">
-                <h2>AI'a Soru Sor</h2>
+                <h2>Soru Çözümü</h2>
                 
-                <div class="select-group">
-                    <label for="questionTypeSelect">Soru Türü Seçiniz (Sorunuzun yapısına en uygun olanı seçin):</label>
-                    <select id="questionTypeSelect">
-                        <option value="">-- Soru Türü Seçiniz --</option>
-                        <option value="yorum_analiz">Yorumlama / Analiz (Altı çizili ifade, duygu durumu, anlatım biçimi, mecazi anlam vb.)</option>
-                        <option value="dilbilgisi">Dil Bilgisi (Fiil çatısı, cümle türleri, yazım, noktalama, anlatım bozukluğu vb.)</option>
-                        <option value="metin_okuma">Metin Okuma / Paragraf Anlama (Ana fikir, yardımcı fikir, başlık, yargılara ulaşma vb.)</option>
-                        <option value="tarih_din_genel">Tarih / Din Kültürü (Olay, kavram, yorum, çıkarım)</option>
-                        <option value="yabanci_dil_ingilizce">Yabancı Dil (İngilizce Metin/Diyalog Anlama, Kelime, Gramer)</option>
-                        <option value="genel_bilgi">Genel Konu/Bilgi Sorusu (Tanım, açıklama vb.)</option>
-                    </select>
-                </div>
-
                 <div class="question-input-group">
-                    <label for="questionInput">Soru Metni ve Seçenekleri (Sorunun tamamını buraya yapıştırın):</label>
-                    <textarea id="questionInput" placeholder="Soru metnini ve tüm seçenekleri buraya yapıştırın. Bu alan boş olamaz!"></textarea>
+                    <label for="questionInput">Soru Metni ve Seçenekleri:</label>
+                    <textarea id="questionInput" placeholder="Sorunun tamamını (metin, seçenekler vb.) buraya yapıştırın. Bu alan boş olamaz!"></textarea>
                 </div>
                 
                 <div class="question-input-group">
-                    <label for="underlinedPhraseInput">Özel Detaylar (Altı Çizili İfade, Kritik Veriler, Soru Numarası vb.):</label>
-                    <input type="text" id="underlinedPhraseInput" placeholder="Örn: 'nefesiyle dalgalandırmalıdır bayrağını', 'grafikte Elma:18, Erik:12, Ayva:30', '4. soruyu çöz'">
-                    <div class="note">**ÖNEMLİ:** Altı çizili ifade, tabloda/grafikteki kritik sayısal veriler veya özel talimatlar (örn. "grafikte Elma:18, Erik:12, Ayva:30" gibi) gibi bilgileri buraya girmeniz **önerilir.** Soru numarası gibi ek talimatları da buraya yazabilirsiniz.</div>
+                    <label for="detailsInput">Özel Detaylar (Altı Çizili İfade, Soru Numarası vb.):</label>
+                    <input type="text" id="detailsInput" placeholder="Örn: 'nefesiyle dalgalandırmalıdır bayrağını', '3. soruyu çöz'">
+                    <div class="note">**ÖNEMLİ:** Sorunun doğru çözülmesi için altı çizili ifade, soru numarası veya diğer kritik detayları buraya girmeniz önerilir.</div>
                 </div>
                 
                 <button id="askTextQuestionBtn" class="primary-btn">Soru Sor</button>
@@ -85,5 +73,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
