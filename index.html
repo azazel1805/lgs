@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -6,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LGS(SÖZEL) AI Asistanı</title>
     <link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%93</text></svg>">    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -54,25 +54,17 @@
                 </div>
 
                 <div class="question-input-group">
-                    <label for="questionInput">Soru Metni ve Seçenekleri (**Resimle birlikte bile buraya yapıştırın**):</label>
-                    <textarea id="questionInput" placeholder="Soru metnini ve seçenekleri buraya yapıştırın..."></textarea>
+                    <label for="questionInput">Soru Metni ve Seçenekleri (Sorunun tamamını buraya yapıştırın):</label>
+                    <textarea id="questionInput" placeholder="Soru metnini ve tüm seçenekleri buraya yapıştırın. Bu alan boş olamaz!"></textarea>
                 </div>
                 
                 <div class="question-input-group">
-                    <label for="underlinedPhraseInput">Altı Çizili İfadeyi / İstenen Detayları / Soru Numarasını Buraya Girin (Eğer varsa):</label>
-                    <input type="text" id="underlinedPhraseInput" placeholder="Örn: nefesiyle dalgalandırmalıdır bayrağını, I:kapsar II:korunarak, 4. soruyu çöz">
-                    <div class="note">**ÇOK ÖNEMLİ:** Altı çizili ifade, tabloda/grafikteki kritik sayısal veriler veya özel talimatlar (örn. "grafikte Elma:18, Erik:12, Ayva:30" gibi) yoksa boş bırakabilirsiniz. **Resimle birlikte dahi bu alanı doldurmanız önerilir.**</div>
+                    <label for="underlinedPhraseInput">Özel Detaylar (Altı Çizili İfade, Kritik Veriler, Soru Numarası vb.):</label>
+                    <input type="text" id="underlinedPhraseInput" placeholder="Örn: 'nefesiyle dalgalandırmalıdır bayrağını', 'grafikte Elma:18, Erik:12, Ayva:30', '4. soruyu çöz'">
+                    <div class="note">**ÖNEMLİ:** Altı çizili ifade, tabloda/grafikteki kritik sayısal veriler veya özel talimatlar (örn. "grafikte Elma:18, Erik:12, Ayva:30" gibi) gibi bilgileri buraya girmeniz **önerilir.** Soru numarası gibi ek talimatları da buraya yazabilirsiniz.</div>
                 </div>
                 
                 <button id="askTextQuestionBtn" class="primary-btn">Soru Sor</button>
-
-                <div class="image-input-group">
-                    <label for="imageUpload">Resimle Soru Sor (Soru metnini ve gerekli detayları üstteki kutulara yapıştırmayı UNUTMAYIN!):</label>
-                    <input type="file" id="imageUpload" accept="image/*" capture="camera">
-                    <img id="imagePreview" src="" alt="Resim Önizleme" style="display: none;">
-                    <button id="askImageQuestionBtn" class="primary-btn" style="display: none;">Resmi ve Soruyu Gönder</button>
-                    <div class="note">**DİKKAT! AI resmi okumakta zorlanabilir.** Resimli sorular için **soru metnini ve seçeneklerini üstteki metin kutusuna** ve **ilgili detayları (altı çizili ifade, kritik sayısal/grafik verileri, soru numarası vb.) hemen üstündeki alana yapıştırmayı/yazmayı MUTLAKA unutmayın.** Aksi takdirde AI doğru yanıt veremeyebilir.</div>
-                </div>
 
                 <div id="aiResponseOutput" class="output-area">
                     <p class="placeholder">AI yanıtları burada belirecektir.</p>
@@ -93,4 +85,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
