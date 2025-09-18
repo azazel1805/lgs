@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
     const questionTypeSelect = document.getElementById('questionTypeSelect');
     const questionInput = document.getElementById('questionInput');
-    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput');
+    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // Artık "detay" alanı
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
     const imageUpload = document.getElementById('imageUpload');
     const imagePreview = document.getElementById('imagePreview');
@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "Fiilimsiler", "Cümlenin Ögeleri", "Cümle Türleri", "Yazım Kuralları",
             "Noktalama İşaretleri", "Anlatım Bozuklukları", "Edebi Sanatlar"
         ],
-        // "Matematik" dersi kaldırıldı
-        // "Fen Bilimleri" dersi kaldırıldı
         "T.C. İnkılap Tarihi ve Atatürkçülük": [
             "Bir Kahraman Doğuyor", "Millî Uyanış: Bağımsızlık Yolunda Atılan Adımlar",
             "Millî Bir Destan: Ya İstiklal Ya Ölüm!", "Çağdaş Türkiye Yolunda Adımlar",
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-    // Ders seçimi dropdown'ını doldur
     for (const lesson in lgsCurriculum) {
         const option = document.createElement('option');
         option.value = lesson;
@@ -91,35 +88,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Prompt oluşturma yardımcı fonksiyonu
+    function createPrompt(questionText, detailsText) { // underlinedPhraseText yerine detailsText
+        let fullPrompt = questionText;
+        if (detailsText) {
+            fullPrompt = `[Kullanıcının belirttiği detaylar: "${detailsText}"]\n${questionText}`;
+        }
+        return fullPrompt;
+    }
+
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
-        const underlinedPhrase = underlinedPhraseInput.value.trim();
+        const details = underlinedPhraseInput.value.trim(); // "detay" alanını al
         const questionType = questionTypeSelect.value;
 
         if (!questionType) {
             alert('Lütfen bir soru türü seçiniz.');
             return;
         }
-
-        if (question) {
-            let fullPrompt = question;
-            if (underlinedPhrase) {
-                fullPrompt = `[Kullanıcının belirttiği detay: "${underlinedPhrase}"]\n${question}`;
-            }
-
-            await getGeminiResponse({
-                type: 'text',
-                prompt: fullPrompt,
-                questionType: questionType,
-                lesson: lessonSelect.value || null,
-                unit: unitSelect.value || null
-            }, aiResponseOutput);
-            questionInput.value = '';
-            underlinedPhraseInput.value = '';
-            questionTypeSelect.value = '';
-        } else {
-            alert('Lütfen bir soru yazınız.');
+        if (!question) {
+            alert('Lütfen bir soru metni ve seçenekleri giriniz.');
+            return;
         }
+
+        const fullPrompt = createPrompt(question, details);
+
+        await getGeminiResponse({
+            type: 'text',
+            prompt: fullPrompt,
+            questionType: questionType,
+            lesson: lessonSelect.value || null,
+            unit: unitSelect.value || null
+        }, aiResponseOutput);
+        questionInput.value = '';
+        underlinedPhraseInput.value = '';
+        questionTypeSelect.value = '';
     });
 
     imageUpload.addEventListener('change', (event) => {
@@ -205,44 +208,45 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("DEBUG: Ask Image Question button clicked.");
         const resizedBase64 = imagePreview.dataset.resizedImage; 
         const question = questionInput.value.trim();
-        const underlinedPhrase = underlinedPhraseInput.value.trim();
+        const details = underlinedPhraseInput.value.trim(); // "detay" alanını al
         const questionType = questionTypeSelect.value;
 
         if (!questionType) {
             alert('Lütfen bir soru türü seçiniz.');
             return;
         }
-
-        if (resizedBase64) {
-            let fullPrompt = question;
-            if (underlinedPhrase) {
-                fullPrompt = `[Kullanıcının belirttiği detay: "${underlinedPhrase}"]\n${question}`;
-            } else if (!question) {
-                 fullPrompt = "Bu resimdeki LGS sorusunu ve seçeneklerini dikkatlice incele.";
-            }
-
-            console.log("DEBUG: Calling getGeminiResponse for image with fullPrompt:", fullPrompt);
-            await getGeminiResponse({
-                type: 'image',
-                prompt: fullPrompt,
-                questionType: questionType,
-                lesson: lessonSelect.value || null,
-                unit: unitSelect.value || null
-            }, aiResponseOutput);
-
-            questionInput.value = ''; 
-            underlinedPhraseInput.value = '';
-            questionTypeSelect.value = '';
-            imageUpload.value = ''; 
-            imagePreview.src = '';
-            imagePreview.style.display = 'none';
-            askImageQuestionBtn.style.display = 'none';
-            delete imagePreview.dataset.resizedImage;
-            console.log("DEBUG: Image question sent, form reset.");
-        } else {
-            alert('Lütfen önce bir resim yükleyiniz.');
-            console.log("DEBUG: Alert: No resized image data found before sending.");
+        // Görsel varsa, metin kutularının da dolu olmasını zorunlu kıl
+        if (resizedBase64 && !question) {
+             alert('Resimle birlikte soru metnini ve seçeneklerini de (üstteki kutuya) girmeniz gerekmektedir.');
+             return;
         }
+        // Hem metin hem resim yoksa uyarı ver
+        if (!question && !resizedBase64) {
+            alert('Lütfen bir soru metni ve seçenekleri giriniz veya bir resim yükleyiniz (resim yüklüyorsanız metni de girin).');
+            return;
+        }
+
+        const fullPrompt = createPrompt(question, details); // Yardımcı fonksiyonu kullan
+
+        console.log("DEBUG: Calling getGeminiResponse for image with fullPrompt:", fullPrompt);
+        await getGeminiResponse({
+            type: 'image', // type hala 'image'
+            prompt: fullPrompt,
+            questionType: questionType,
+            image: resizedBase64,
+            lesson: lessonSelect.value || null,
+            unit: unitSelect.value || null
+        }, aiResponseOutput);
+
+        questionInput.value = ''; 
+        underlinedPhraseInput.value = '';
+        questionTypeSelect.value = '';
+        imageUpload.value = ''; 
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+        askImageQuestionBtn.style.display = 'none';
+        delete imagePreview.dataset.resizedImage;
+        console.log("DEBUG: Image question sent, form reset.");
     });
 
     async function getGeminiResponse(payload, outputElement) {
