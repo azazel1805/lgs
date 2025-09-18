@@ -6,15 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
     const questionTypeSelect = document.getElementById('questionTypeSelect');
     const questionInput = document.getElementById('questionInput');
-    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // "detay" alanı
+    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput');
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
-    // const imageUpload = document.getElementById('imageUpload'); // Kaldırıldı
-    // const imagePreview = document.getElementById('imagePreview'); // Kaldırıldı
-    // const askImageQuestionBtn = document.getElementById('askImageQuestionBtn'); // Kaldırıldı
     const aiResponseOutput = document.getElementById('aiResponseOutput');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    // LGS 8. Sınıf Dersleri ve Üniteleri - SADECE İSTENEN DERSLER DAHİL EDİLDİ
     const lgsCurriculum = {
         "Türkçe": [
             "Sözcükte Anlam", "Cümlede Anlam", "Parçada Anlam", "Metin Türleri",
@@ -88,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Prompt oluşturma yardımcı fonksiyonu
     function createPrompt(questionText, detailsText) {
         let fullPrompt = questionText;
         if (detailsText) {
@@ -114,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fullPrompt = createPrompt(question, details);
 
         await getGeminiResponse({
-            type: 'text', // type artık her zaman 'text' olacak
+            type: 'text',
             prompt: fullPrompt,
             questionType: questionType,
             lesson: lessonSelect.value || null,
@@ -125,15 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
         questionTypeSelect.value = '';
     });
 
-    // Görsel yükleme ile ilgili tüm fonksiyonlar kaldırıldı
-    // imageUpload.addEventListener('change', ...);
-    // askImageQuestionBtn.addEventListener('click', ...);
-
     async function getGeminiResponse(payload, outputElement) {
         outputElement.innerHTML = '';
         loadingIndicator.style.display = 'flex';
         disableControls(true);
-        console.log("DEBUG: Sending request to Netlify Function with payload:", payload);
 
         try {
             const response = await fetch('/.netlify/functions/gemini', {
@@ -143,35 +133,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(payload),
             });
-            console.log("DEBUG: Response received from Netlify Function. Status:", response.status);
 
             if (!response.ok) {
                 let errorData;
                 try {
                     errorData = await response.json();
-                    console.log("DEBUG: Error response data (JSON):", errorData);
                 } catch (e) {
                     const rawErrorText = await response.text();
-                    console.error("DEBUG: Failed to parse error response as JSON. Raw text:", rawErrorText.substring(0, 200) + "...");
                     throw new Error(`Sunucudan hatalı yanıt alındı (Durum: ${response.status}). Yanıt JSON değil veya bozuk: ${rawErrorText.substring(0, 200)}...`);
                 }
                 throw new Error(errorData.error || `HTTP error! Status: ${response.status} - ${response.statusText}`);
             }
 
             const data = await response.json();
-            console.log("DEBUG: Successful response data:", data);
             if (data.error) {
-                outputElement.innerHTML = `<p class="error-message">Hata: ${data.error}</p>`;
+                outputElement.innerHTML = `<div class="error-message">${data.error}</div>`;
             } else {
-                outputElement.innerHTML = `<p>${data.response}</p>`;
+                // YANITI MARKDOWN'DAN HTML'E ÇEVİRİYORUZ
+                outputElement.innerHTML = marked.parse(data.response);
             }
         } catch (error) {
-            console.error('DEBUG: API isteği başarısız oldu:', error);
-            outputElement.innerHTML = `<p class="error-message">Bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.</p>`;
+            console.error('API isteği başarısız oldu:', error);
+            outputElement.innerHTML = `<div class="error-message">Bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.</div>`;
         } finally {
             loadingIndicator.style.display = 'none';
             disableControls(false);
-            console.log("DEBUG: Request finished. Controls enabled.");
         }
     }
 
@@ -183,7 +169,5 @@ document.addEventListener('DOMContentLoaded', () => {
         questionInput.disabled = status;
         underlinedPhraseInput.disabled = status;
         askTextQuestionBtn.disabled = status;
-        // imageUpload.disabled = status; // Kaldırıldı
-        // askImageQuestionBtn.disabled = status; // Kaldırıldı
     }
 });
