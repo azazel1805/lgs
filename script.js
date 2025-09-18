@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const topicExplanationOutput = document.getElementById('topicExplanationOutput');
     const questionTypeSelect = document.getElementById('questionTypeSelect');
     const questionInput = document.getElementById('questionInput');
-    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // Artık "detay" alanı
+    const underlinedPhraseInput = document.getElementById('underlinedPhraseInput'); // "detay" alanı
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
-    const askImageQuestionBtn = document.getElementById('askImageQuestionBtn');
+    // const imageUpload = document.getElementById('imageUpload'); // Kaldırıldı
+    // const imagePreview = document.getElementById('imagePreview'); // Kaldırıldı
+    // const askImageQuestionBtn = document.getElementById('askImageQuestionBtn'); // Kaldırıldı
     const aiResponseOutput = document.getElementById('aiResponseOutput');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Prompt oluşturma yardımcı fonksiyonu
-    function createPrompt(questionText, detailsText) { // underlinedPhraseText yerine detailsText
+    function createPrompt(questionText, detailsText) {
         let fullPrompt = questionText;
         if (detailsText) {
             fullPrompt = `[Kullanıcının belirttiği detaylar: "${detailsText}"]\n${questionText}`;
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     askTextQuestionBtn.addEventListener('click', async () => {
         const question = questionInput.value.trim();
-        const details = underlinedPhraseInput.value.trim(); // "detay" alanını al
+        const details = underlinedPhraseInput.value.trim();
         const questionType = questionTypeSelect.value;
 
         if (!questionType) {
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fullPrompt = createPrompt(question, details);
 
         await getGeminiResponse({
-            type: 'text',
+            type: 'text', // type artık her zaman 'text' olacak
             prompt: fullPrompt,
             questionType: questionType,
             lesson: lessonSelect.value || null,
@@ -125,129 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         questionTypeSelect.value = '';
     });
 
-    imageUpload.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        console.log("DEBUG: Image upload change event triggered. File:", file ? file.name : "No file");
-        
-        imagePreview.src = '';
-        imagePreview.style.display = 'none';
-        askImageQuestionBtn.style.display = 'none'; 
-        delete imagePreview.dataset.resizedImage;
-
-        if (file) {
-            aiResponseOutput.innerHTML = '<p class="placeholder">AI yanıtları burada belirecektir.</p>';
-            
-            const MAX_SIZE = 1024;
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                console.log("DEBUG: Image reader loaded. Image src set.");
-
-                img.onload = () => {
-                    console.log("DEBUG: Image object loaded. Starting canvas resize.");
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height *= MAX_SIZE / width;
-                            width = MAX_SIZE;
-                        }
-                    } else {
-                        if (height > MAX_SIZE) {
-                            width *= MAX_SIZE / height;
-                            height = MAX_SIZE;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    
-                    if (resizedBase64) {
-                        imagePreview.src = resizedBase64;
-                        imagePreview.style.display = 'block';
-                        askImageQuestionBtn.style.display = 'inline-block'; 
-                        console.log("DEBUG: askImageQuestionBtn style after success:", askImageQuestionBtn.style.display);
-
-                        imagePreview.dataset.resizedImage = resizedBase64.split(',')[1];
-                        console.log("DEBUG: Resized image data set.");
-                    } else {
-                        console.error("DEBUG: toDataURL returned empty or invalid data.");
-                        alert("Resim işlenirken bir hata oluştu. Lütfen farklı bir resim deneyin.");
-                        imageUpload.value = '';
-                        imagePreview.src = '';
-                        imagePreview.style.display = 'none';
-                        askImageQuestionBtn.style.display = 'none'; 
-                        delete imagePreview.dataset.resizedImage;
-                    }
-                };
-                img.onerror = () => {
-                    console.error("DEBUG: Resim yüklenemedi veya bozuk.");
-                    alert("Yüklenen resim geçersiz veya bozuk. Lütfen başka bir resim deneyin.");
-                    imageUpload.value = '';
-                    imagePreview.src = '';
-                    imagePreview.style.display = 'none';
-                    askImageQuestionBtn.style.display = 'none'; 
-                    delete imagePreview.dataset.resizedImage;
-                };
-            };
-            reader.readAsDataURL(file);
-        } else {
-            console.log("DEBUG: No file selected or selection cancelled. All elements hidden.");
-        }
-    });
-
-    askImageQuestionBtn.addEventListener('click', async () => {
-        console.log("DEBUG: Ask Image Question button clicked.");
-        const resizedBase64 = imagePreview.dataset.resizedImage; 
-        const question = questionInput.value.trim();
-        const details = underlinedPhraseInput.value.trim(); // "detay" alanını al
-        const questionType = questionTypeSelect.value;
-
-        if (!questionType) {
-            alert('Lütfen bir soru türü seçiniz.');
-            return;
-        }
-        // Görsel varsa, metin kutularının da dolu olmasını zorunlu kıl
-        if (resizedBase64 && !question) {
-             alert('Resimle birlikte soru metnini ve seçeneklerini de (üstteki kutuya) girmeniz gerekmektedir.');
-             return;
-        }
-        // Hem metin hem resim yoksa uyarı ver
-        if (!question && !resizedBase64) {
-            alert('Lütfen bir soru metni ve seçenekleri giriniz veya bir resim yükleyiniz (resim yüklüyorsanız metni de girin).');
-            return;
-        }
-
-        const fullPrompt = createPrompt(question, details); // Yardımcı fonksiyonu kullan
-
-        console.log("DEBUG: Calling getGeminiResponse for image with fullPrompt:", fullPrompt);
-        await getGeminiResponse({
-            type: 'image', // type hala 'image'
-            prompt: fullPrompt,
-            questionType: questionType,
-            image: resizedBase64,
-            lesson: lessonSelect.value || null,
-            unit: unitSelect.value || null
-        }, aiResponseOutput);
-
-        questionInput.value = ''; 
-        underlinedPhraseInput.value = '';
-        questionTypeSelect.value = '';
-        imageUpload.value = ''; 
-        imagePreview.src = '';
-        imagePreview.style.display = 'none';
-        askImageQuestionBtn.style.display = 'none';
-        delete imagePreview.dataset.resizedImage;
-        console.log("DEBUG: Image question sent, form reset.");
-    });
+    // Görsel yükleme ile ilgili tüm fonksiyonlar kaldırıldı
+    // imageUpload.addEventListener('change', ...);
+    // askImageQuestionBtn.addEventListener('click', ...);
 
     async function getGeminiResponse(payload, outputElement) {
         outputElement.innerHTML = '';
@@ -303,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionInput.disabled = status;
         underlinedPhraseInput.disabled = status;
         askTextQuestionBtn.disabled = status;
-        imageUpload.disabled = status;
-        askImageQuestionBtn.disabled = status;
+        // imageUpload.disabled = status; // Kaldırıldı
+        // askImageQuestionBtn.disabled = status; // Kaldırıldı
     }
 });
