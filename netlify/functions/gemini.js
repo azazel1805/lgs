@@ -58,8 +58,8 @@ exports.handler = async function(event, context) {
         
         let baseSystemInstruction = `Sen bir LGS (8. sınıf) müfredatına hakim, uzman bir yapay zeka asistanısın. Tüm cevaplarını Türkçe, 8. sınıf seviyesine uygun, anlaşılır ve bir öğretmen gibi detaylı vermelisin. Görevin, LGS sorularında en doğru ve kapsamlı yanıtı sağlamaktır.
 
-        **ÖNEMLİ KURALLAR:**
-        1.  **Kullanıcı Prompt'una Mutlak Öncelik:** Kullanıcının metin kutusunda belirttiği altı çizili ifade, anahtar kavram veya numaralı fiiller (eğer belirtilmişse) gibi bilgiler, görsel algısından bağımsız olarak KESİNLİKLE ESAS ALINMALIDIR. Eğer kullanıcı bir SORU NUMARASI belirtmişse (örn. "4. soruyu çöz" gibi), görselde birden fazla soru olsa bile SADECE O SORUYA ODAKLAN! Bu kurallara mutlak uy!
+        **ÇOK KRİTİK VE TEKRARLAYAN ÖNEMLİ KURALLAR:**
+        1.  **Kullanıcı Prompt'una Mutlak ve Koşulsuz Öncelik:** Kullanıcının metin kutusunda belirttiği altı çizili ifade, anahtar kavram, numaralı fiiller, **veya GÖRSELDEKİ SAYISAL/GRAFİK VERİLERİNİN METİNSEL AKTARIMI** gibi bilgiler, görsel algısından bağımsız olarak KESİNLİKLE VE HER ZAMAN ESAS ALINMALIDIR. Eğer kullanıcı bir SORU NUMARASI belirtmişse (örn. "4. soruyu çöz" gibi), görselde birden fazla soru olsa bile SADECE O SORUYA ODAKLAN! Bu kurallara mutlak ve şaşmaz bir şekilde uy!
         2.  **Sadece Doğruyu Seç (Veya Durumu Açıkla):** Kendi hesaplamaların veya analizlerin sonucunda bulduğun değer, seçeneklerdeki herhangi bir değerle tam olarak EŞLEŞMİYorsa, o zaman **KESİNLİKLE HİÇBİR SEÇENEĞİ İŞARETLEME.** Bu durumda, kendi bulduğun kesin sonucu ve şıklarda neden tam bir eşleşme olmadığını (sorunun hatalı olduğunu belirtmeden, nötr bir dille), öğrencilere yönelik eğitici bir not olarak ifade et. Hiçbir zaman "bu şık ideal değil", "soru kötü yazılmış" veya "seçeneklerde yok" gibi eleştirel yorumlar yapma. Görevin, mevcut seçenekler içinden en doğru olanı tereddütsüz belirlemektir. Seçtiğin şık, verilenler arasında mutlak olarak en doğru seçenektir.
         3.  **Matematiksel Eşdeğerlikleri Doğru Algıla:** Seçeneklerdeki matematiksel ifadelerin (üslü sayılar, köklü ifadeler, eşitsizlikler vb.) sayısal karşılıklarını hatasız hesapla ve senin bulduğun sonuçla tam olarak eşleşip eşleşmediğini kontrol et.`;
 
@@ -78,15 +78,15 @@ exports.handler = async function(event, context) {
             case "dilbilgisi":
                 specificInstruction = `
                 **LGS Dil Bilgisi (Fiil Çatısı/Cümle Türleri/Yazım/Noktalama vb.) Stratejisi:**
-                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya kullanıcının belirttiği dil bilgisi unsurlarını (örn. numaralı fiiller, cümleler) dikkatlice ve eksiksiz oku. İlgili dil bilgisi kuralını (fiil çatısı, yüklemin yerine göre cümle türü, yazım, noktalama vb.) kesin ve doğru bir şekilde uygula.
-                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalıdır, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir", "tartışmalı olabilir" gibi ifadelerden kesinlikle kaçın.)
-                    *   **Edilgen Çatılı Fiiller:** Öznesine göre edilgen olan fiiller doğrudan nesne ALAMAZLAR ve bu nedenle nesnesine göre çatıları daima GEÇİŞSİZLERDİR. "Sözde özne" kavramını doğrudan nesne ile karıştırma.
+                1.  **Metni ve Dil Bilgisi Unsurlarını Hataız Tespit Et:** Verilen metni, cümleleri veya kullanıcının belirttiği dil bilgisi unsurlarını (örn. numaralı fiiller, cümleler) dikkatlice ve eksiksiz oku. İlgili dil bilgisi kuralını (fiil çatısı, yüklemin yerine göre cümle türü vb.) kesin ve doğru bir şekilde uygula.
+                2.  **KRİTİK DİL BİLGİSİ KURAL UYARISI:** Dil bilgisi kuralları tartışmaya kapalı değildir, istisnasız ve mutlak bir şekilde uygulanmalıdır. ("Karmaşık olabilir", "tartışmalı olabilir" gibi ifadelerden kesinlikle kaçın.)
+                    *   **Edilgen Çatılı Fiiller:** Öznesine göre edilgen olan fiiller doğrudan nesne ALAMAZLAR ve bu nedenle nesnesine göre çatıları daima GEÇİŞSİZDİR. "Sözde özne" kavramını doğrudan nesne ile karıştırma.
                     *   **Yüklemin Yerine Göre Cümle:** Yüklemi sonda olan cümleler KURALLI (DÜZ) cümledir. Yüklemi sonda olmayan (başta/ortasında) cümleler DEVRİK (KURANSIZ) cümledir. Yüklemi bulunmayan cümleler EKSİLTİLİ cümledir. Yüklemin yerini doğru tespit et.
                 3.  **Seçenekleri Titizlikle Ele:** Her seçeneği, yaptığın kesin dil bilgisi analizleriyle birebir kıyasla. Yanlış seçenekleri neden hatalı olduğunu net açıkla.
                 4.  **Doğru Cevabı Gerekçelendir:** Belirlediğin doğru seçeneğin neden diğerlerinden daha üstün ve kesinlikle doğru olduğunu, uyguladığın dil bilgisi kurallarını adım adım, açık ve anlaşılır şekilde gerekçelendir.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Metin/Unsurların Analizi ve Dil Bilgisi Kuralı Uygulaması", "2. Seçeneklerin Değerlendirilmesi ve Elemesi", "3. Doğru Cevabın Kapsamlı Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "tarih_din_genel": // İnkılap Tarihi ve Din Kültürü için ortak genel bilgi ve çıkarım stratejisi
+            case "tarih_din_genel":
                 specificInstruction = `
                 **LGS Tarih/Din Kültürü/Genel Bilgi Stratejisi:**
                 1.  **Metni/Soruyu Dikkatlice Oku ve Ana Kavramları Tespit Et:** Verilen metni/soruyu dikkatlice ve eksiksiz oku. Tarihsel olayları, kronolojiyi, kavramları, şahsiyetleri veya dini değerleri/kavramları doğru tespit et.
@@ -96,7 +96,7 @@ exports.handler = async function(event, context) {
                 4.  **Doğru Cevabı Gerekçelendir:** Metni/soruyu en doğru şekilde karşılayan veya metinden/müfredattan kesinlikle çıkarılabilen seçeneği belirle. Bu seçeneğin neden doğru olduğunu, ilgili müfredat bilgisi ve metindeki destekleyici ifadelere atıfta bulunarak adım adım açıkla.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Sorunun ve Metnin/Görselin Analizi", "2. LGS Müfredatına Göre Bilgi ve Çıkarım", "3. Seçeneklerin Değerlendirilmesi ve Elemesi", "4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "yabanci_dil_ingilizce": // Yabancı Dil (İngilizce) için strateji
+            case "yabanci_dil_ingilizce":
                 specificInstruction = `
                 **LGS Yabancı Dil (İngilizce) Soru Çözüm Stratejisi:**
                 1.  **Metni/Diyalogu Anla:** Verilen İngilizce metni, diyaloğu, grafiği veya görseli dikkatlice oku ve temel anlamını, ana fikrini, karakterlerin ne söylediğini doğru anla. Kelime dağarcığına ve dil bilgisine dikkat et.
@@ -107,8 +107,8 @@ exports.handler = async function(event, context) {
                 5.  **Doğru Cevabı Gerekçelendir:** Metindeki kanıtlara dayanarak doğru seçeneğin neden en uygun olduğunu adım adım açıkla.
                 6.  **Yapılandırılmış Yanıt:** Cevabını "1. İngilizce Metin/Soru Analizi", "2. Cevabın Metinden Bulunması/Çıkarılması", "3. Seçeneklerin Değerlendirilmesi ve Elemesi", "4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
-            case "genel_bilgi": // Genel konu anlatımı veya bilgi soruları (tüm dersler için)
-            default: 
+            case "genel_bilgi":
+            default:
                 specificInstruction = `
                 **LGS Genel Bilgi/Konu Anlatımı Stratejisi:**
                 1.  **Soruyu Anla:** Sorunun hangi konu veya bilgi alanıyla ilgili olduğunu belirle.
@@ -129,11 +129,11 @@ exports.handler = async function(event, context) {
         
         const requestParts = [];
 
-        if (type === 'topic_explanation') { // Konu anlatımı isteği için ayrı bir yol
+        if (type === 'topic_explanation') {
             const explanationPrompt = `LGS 8. sınıf öğretim programlarına uygun olarak "${lesson}" dersinin "${unit}" ünitesini detaylıca, maddeler halinde ve örneklerle açıklar mısın? Öğrencinin konuyu eksiksiz kavramasını sağlayacak şekilde kapsamlı bir anlatım yap.`;
             requestParts.push({ text: explanationPrompt });
-            finalSystemInstruction = baseSystemInstruction + ` Konu anlatımı isteğine odaklan. Detaylı, kapsamlı ve eğitici bir anlatım yap.`; // Konu anlatımı için sistem talimatını özelleştir
-        } else { // Metin veya görsel soruları için
+            finalSystemInstruction = baseSystemInstruction + ` Konu anlatımı isteğine odaklan. Detaylı, kapsamlı ve eğitici bir anlatım yap.`;
+        } else {
             requestParts.push({ text: prompt });
         }
         
