@@ -90,13 +90,13 @@ exports.handler = async function(event, context) {
             case "tarih_din_genel":
                 specificInstruction = `
                 **LGS Tarih/Din Kültürü/Genel Bilgi Stratejisi:**
-                1.  **Metni/Soruyu Dikkatlice Oku ve Olayları/Kavramları Tespit Et:** Verilen metni/soruyu dikkatlice ve eksiksiz oku. Tarihsel olayları, kronolojiyi, kavramları, şahsiyetleri veya dini değerleri/kavramları doğru tespit et. **Metindeki olaylar arasındaki neden-sonuç ilişkisini (bir olayın diğerine nasıl yol açtığını) ve kronolojik sırayı doğru anla.**
-                2.  **LGS Müfredatına Göre Bilgi ve Çıkarım:**
-                    *   Soruyu LGS 8. sınıf müfredatındaki kesin ve doğru bilgilerine dayanarak yanıtla. **Asla hatalı coğrafi (örn. Doğu/Batı Trakya gibi), tarihsel veya kavramsal bilgi kullanma.**
+                1.  **Metni/Soruyu Dikkatlice Oku ve Ana Kavramları Tespit Et:** Verilen metni/soruyu dikkatlice ve eksiksiz oku. Tarihsel olayları, kronolojiyi, kavramları, şahsiyetleri veya dini değerleri/kavramları doğru tespit et. Metindeki olaylar arasındaki neden-sonuç ilişkisini ve kronolojik sırayı doğru anla.
+                2.  **LGS Müfredatına Göre KESİN BİLGİ ve Çıkarım:**
+                    *   Soruyu LGS 8. sınıf müfredatındaki **kesin ve teyit edilmiş bilgilere dayanarak** yanıtla. **Asla hatalı coğrafi (örn. Doğu/Batı Trakya gibi), tarihsel veya dini kavramsal bilgi (örn. zekâtın kimlere verilemeyeceği gibi temel kurallar) kullanma.** Bilginin doğruluğundan emin değilsen, bunu belirtmek yerine en temel ve kesin kurallara odaklan.
                     *   Metinden veya görselden çıkarılması gereken yargıları, **metindeki neden-sonuç ilişkilerini ve kronolojiyi** temel alarak, müfredat bilgisiyle birleştirerek mantıksal ve doğru çıkarımlar yap.
-                3.  **Seçenekleri Metin/Bilgi ile Kıyasla:** Her bir seçeneği ayrı ayrı metindeki bilgilerle, metinden çıkarılabilecek en mantıklı sonuçlarla ve LGS müfredatındaki genel bilgiyle kıyasla.
-                    *   Yanlış seçenekleri neden hatalı (metinle çelişen, metinden çıkarılamayan, hatalı bilgi içeren vb.) olduğunu açıklayarak ele.
-                4.  **Doğru Cevabı Gerekçelendir:** Metindeki olaylar zincirini ve neden-sonuç ilişkisini en iyi yansıtan, metinden/müfredattan kesinlikle çıkarılabilen seçeneği belirle. Bu seçeneğin neden doğru olduğunu, ilgili müfredat bilgisi ve metindeki destekleyici ifadelere atıfta bulunarak adım adım açıkla.
+                3.  **Seçenekleri Kesin Bilgiyle Kıyasla:** Her bir seçeneği ayrı ayrı metindeki bilgilerle, metinden çıkarılabilecek en mantıklı sonuçlarla ve LGS müfredatındaki kesin bilgilerle kıyasla.
+                    *   Yanlış seçenekleri neden hatalı (metinle çelişen, metinden çıkarılamayan, kesin bilgiyle çelişen vb.) olduğunu açıklayarak ele.
+                4.  **Doğru Cevabı Gerekçelendir:** Metindeki veya sorudaki yargıları doğru/yanlış olarak belirledikten sonra, doğru yargıları içeren seçeneği belirle. Bu seçeneğin neden doğru olduğunu, ilgili müfredat bilgisi ve metindeki destekleyici ifadelere atıfta bulunarak adım adım açıkla.
                 5.  **Yapılandırılmış Yanıt:** Cevabını "1. Sorunun ve Metnin/Görselin Analizi", "2. LGS Müfredatına Göre Bilgi ve Çıkarım", "3. Seçeneklerin Değerlendirilmesi ve Elemesi", "4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
             case "yabanci_dil_ingilizce":
