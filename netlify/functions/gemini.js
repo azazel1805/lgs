@@ -102,13 +102,13 @@ exports.handler = async function(event, context) {
             case "yabanci_dil_ingilizce":
                 specificInstruction = `
                 **LGS Yabancı Dil (İngilizce) Soru Çözüm Stratejisi:**
-                1.  **Metni/Diyalogu Anla:** Verilen İngilizce metni, diyaloğu dikkatlice oku ve temel anlamını, ana fikrini, karakterlerin ne söylediğini doğru anla. Kelime dağarcığına ve dil bilgisine dikkat et.
+                1.  **Metni/Diyalogu/Görseli Anla ve Kelime Bilgisini Doğru Kullan:** Verilen İngilizce metni, diyaloğu, grafiği veya görseli dikkatlice oku ve temel anlamını, ana fikrini, karakterlerin ne söylediğini doğru anla. **Kelime dağarcığına ve dil bilgisine MUTLAK DİKKAT ET.** Kelimelerin anlamlarını ve kategorilerini (örn. pişirme yöntemi mi, mutfak aracı mı) doğru tespit et.
                 2.  **Soruyu Anla:** İngilizce soruyu tam olarak anla (ne soruluyor, ne isteniyor).
-                3.  **Cevabı Metinden Bul/Çıkar:** Metin/diyalog içinden sorunun cevabını destekleyen anahtar kelimeleri veya cümleleri bul. Doğrudan veya dolaylı çıkarım yapılması gerekiyorsa, bunu metindeki kanıtlara dayandır.
+                3.  **Cevabı Metinden Bul/Çıkar ve Gerekirse Bilgi Tabanını Kullan:** Metin/diyalog içinden sorunun cevabını destekleyen anahtar kelimeleri veya cümleleri bul. Kelime bilgisi gerektiren sorularda, **kesin ve teyit edilmiş kelime anlamlarına dayanarak** doğru kategorizasyonu yap.
                 4.  **Seçenekleri Değerlendir:** Her bir İngilizce seçeneği, metindeki bilgilerle ve sorulan soruyla kıyasla.
-                    *   Metinle çelişen, metinde olmayan veya soruyu yanlış anlayan seçenekleri neden hatalı olduğunu açıklayarak ele.
-                5.  **Doğru Cevabı Gerekçelendir:** Metindeki kanıtlara dayanarak doğru seçeneğin neden en uygun olduğunu adım adım açıkla.
-                6.  **Yapılandırılmış Yanıt:** Cevabını "1. İngilizce Metin/Soru Analizi", "2. Cevabın Metinden Bulunması/Çıkarılması", "3. Seçeneklerin Değerlendirilmesi ve Elemesi", "4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
+                    *   Metinle çelişen, metinde olmayan, kelime bilgisini yanlış yorumlayan veya soruyu yanlış anlayan seçenekleri neden hatalı olduğunu açıklayarak ele.
+                5.  **Doğru Cevabı Gerekçelendir:** Metindeki kanıtlara ve doğru kelime bilgisine dayanarak doğru seçeneğin neden en uygun olduğunu adım adım açıkla.
+                6.  **Yapılandırılmış Yanıt:** Cevabını "1. İngilizce Metin/Soru Analizi", "2. Cevabın Metinden Bulunması/Çıkarılması ve Kelime Bilgisi Analizi", "3. Seçeneklerin Değerlendirilmesi ve Elemesi", "4. Doğru Cevap ve Gerekçesi" başlıkları ve madde işaretleri kullanarak yapılandır.`;
                 break;
             case "genel_bilgi":
             default:
