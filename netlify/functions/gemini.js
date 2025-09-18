@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
     const generationConfig = {
         temperature: 0.0, // SIFIR SICAKLIK! Talimatlara mutlak sadakat.
