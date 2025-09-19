@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const historyContainer = document.getElementById('historyContainer');
     const historyTabs = document.querySelector('.history-tabs');
+    const loginOverlay = document.getElementById('login-overlay');
+    const overlayLoginBtn = document.getElementById('overlayLoginBtn');
+
 
     // --- Veri ---
     const lgsCurriculum = {
@@ -49,10 +52,26 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             document.getElementById('logoutBtn').addEventListener('click', () => netlifyIdentity.logout());
             document.getElementById('historyBtn').addEventListener('click', openHistoryModal);
+
+            // Kullanıcı giriş yaptı, soru sorma alanını aç
+            loginOverlay.style.display = 'none';
+            toggleQuestionArea(true);
+
         } else {
             userControls.innerHTML = '<button id="loginBtn" class="primary-btn">Giriş Yap / Kayıt Ol</button>';
             document.getElementById('loginBtn').addEventListener('click', () => netlifyIdentity.open());
+
+            // Kullanıcı giriş yapmadı, soru sorma alanını kilitle
+            loginOverlay.style.display = 'flex';
+            toggleQuestionArea(false);
         }
+    };
+    
+    // Soru sorma alanını kilitleme/açma fonksiyonu
+    const toggleQuestionArea = (isLoggedIn) => {
+        questionInput.disabled = !isLoggedIn;
+        detailsInput.disabled = !isLoggedIn;
+        askTextQuestionBtn.disabled = !isLoggedIn;
     };
 
     netlifyIdentity.on('init', user => updateUserUI(user));
@@ -76,9 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
         listToRender.slice().reverse().forEach(item => {
             const itemEl = document.createElement('div');
             itemEl.className = 'history-item';
+            // Cevapları ve soruları gösterirken Markdown'ı işlemek için marked.parse() kullan
+            const questionHtml = marked.parse(item.question.replace(/\[Kullanıcının belirttiği ek detaylar\/odak noktası: ".*"\]\n/, ''));
             itemEl.innerHTML = `
                 <h4>${item.lesson || 'Genel Soru'}</h4>
-                <div class="question-text">${item.question}</div>
+                <div class="question-text">${questionHtml}</div>
                 <div class="answer-text">${item.answer}</div>
                 <div class="item-footer">${new Date(item.timestamp).toLocaleString('tr-TR')}</div>
             `;
@@ -175,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             fullHistory = data.history || [];
             reviewList = data.history.filter(item => item.review) || [];
-            renderHistory('all'); // Başlangıçta tüm geçmişi göster
+            renderHistory('all');
         } catch (error) {
             historyContainer.innerHTML = `<p class="error-message">${error.message}</p>`;
         }
@@ -183,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeHistoryModal.addEventListener('click', () => { historyModal.style.display = 'none'; });
     
+    overlayLoginBtn.addEventListener('click', () => netlifyIdentity.open());
+
     historyTabs.addEventListener('click', (e) => {
         if (e.target.classList.contains('tab-btn')) {
             document.querySelector('.tab-btn.active').classList.remove('active');
@@ -197,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = netlifyIdentity.currentUser();
             if (!user) {
                 alert('Bu özellikleri kullanmak için giriş yapmalısınız.');
-                netlifyIdentity.open(); // Giriş yapma penceresini aç
+                netlifyIdentity.open();
                 return;
             }
 
@@ -207,8 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const questionData = {
                 question: outputArea.dataset.originalQuestion,
                 lesson: outputArea.dataset.originalLesson,
-                answer: outputArea.innerHTML,
-                timestamp: outputArea.dataset.timestamp
+                answer: outputArea.querySelector('.action-buttons').previousSibling.innerHTML || outputArea.innerHTML,
+                timestamp: parseInt(outputArea.dataset.timestamp)
             };
             
             if (action === 'review') {
@@ -279,19 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const questionData = {
                         question: payload.prompt,
                         lesson: payload.lesson,
-                        answer: formattedHtml, // Sadece AI'ın Markdown'dan dönüştürülmüş HTML yanıtı
+                        answer: formattedHtml,
                         timestamp: timestamp,
                         review: false
                     };
                     
-                    // Veriyi eylem butonları için sakla
                     outputElement.dataset.timestamp = timestamp;
                     outputElement.dataset.originalQuestion = payload.prompt;
                     outputElement.dataset.originalLesson = payload.lesson;
                     
                     const user = netlifyIdentity.currentUser();
                     if (user) {
-                        // Geçmişi kaydetmek için backend'e gönder, ama sonucu bekleme (arka planda çalışsın)
                         fetch('/.netlify/functions/save-history', {
                             method: 'POST',
                             headers: {
