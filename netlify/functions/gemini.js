@@ -119,28 +119,30 @@ exports.handler = async function(event, context) {
         break;
 
     case "dilbilgisi":
-        specificInstruction = `
-        **LGS Dil Bilgisi Stratejisi (Kural Odaklı ve Hatasız Çözüm)**
+    specificInstruction = `
+    **LGS Dil Bilgisi Stratejisi (Kural Odaklı ve Hatasız Çözüm)**
 
-        **Amaç:** Verilen metin veya cümlelerdeki dil bilgisi unsurunu (fiilimsi, öge, çatı, cümle türü, yazım/noktalama vb.) TDK kurallarına göre mutlak bir doğrulukla tespit etmek ve uygulamak.
+    **Amaç:** Verilen metin veya cümlelerdeki dil bilgisi unsurunu (fiilimsi, öge, çatı, cümle türü, yazım/noktalama, anlatım bozukluğu vb.) TDK kurallarına göre mutlak bir doğrulukla tespit etmek ve uygulamak.
 
-        **KRİTİK UYARI:** Dil bilgisi kuralları yoruma açık değildir. Cevap, %100 TDK kurallarına ve dil bilgisi tanımlarına dayanmalıdır. "Bence", "olabilir", "gibi görünüyor" gibi ifadelerden kesinlikle kaçınılmalıdır.
+    **KRİTİK UYARI:** Dil bilgisi kuralları yoruma açık değildir. Cevap, %100 TDK kurallarına ve dil bilgisi tanımlarına dayanmalıdır. "Bence", "olabilir", "gibi görünüyor" gibi ifadelerden kesinlikle kaçınılmalıdır.
 
-        ### 1. Sorgulanan Dil Bilgisi Kuralının Tespiti ve Tanımı
-        *   **Soruyu Deşifre Et:** Soru kökü tam olarak neyi istiyor? "Hangisinde sıfat-fiil vardır?", "Hangisinin yüklemi sözcük türü bakımından farklıdır?", "Hangi cümlenin öge dizilişi doğrudur?" gibi. İstenen kuralı net bir şekilde tanımla.
-        *   **İlgili Kuralı Hatırla:** Sorgulanan dil bilgisi kuralının tanımını, eklerini ve istisnalarını eksiksiz bir şekilde zihninde canlandır. Örneğin, fiilimsiler için "-ma, -ış, -mak", "-an, -ası, -mez, -ar, -dik, -ecek, -miş" eklerini ve kalıcı isimlerle karıştırılmaması gerektiğini hatırla.
+    ### 1. Sorgulanan Dil Bilgisi Kuralının Tespiti ve Tanımı
+    *   **Soruyu Deşifre Et:** Soru kökü tam olarak neyi istiyor? "Hangisinde sıfat-fiil vardır?", "Hangi cümlenin öge dizilişi doğrudur?", "Hangisinde öge eksikliğinden kaynaklanan anlatım bozukluğu vardır?" gibi. İstenen kuralı net bir şekilde tanımla.
 
-        ### 2. Metin/Cümleler Üzerinde Kuralın Uygulanması ve Analizi
-        *   **Sistematik Tarama:** Her bir seçeneği veya numaralandırılmış cümleyi, 1. adımda belirlediğin kurala göre dikkatlice tara.
-        *   **Uygulamalı Analiz:** Örneğin, öge soruluyorsa her cümlenin ögelerini tek tek bul ("Yüklem: ..., Özne: ..., Nesne: ..."). Fiilimsi soruluyorsa her cümledeki fiil köklü kelimeleri ve aldıkları ekleri kontrol et. Yazım yanlışı aranıyorsa her kelimeyi TDK yazım kurallarına göre denetle.
+    ### 2. Metin/Cümleler Üzerinde Kuralın Uygulanması ve Analizi
+    *   **Genel Uygulama:** Her seçeneği veya numaralı cümleyi, belirlediğin kurala göre dikkatlice tara.
+    *   **ÖZEL STRATEJİ: Anlatım Bozukluğu (Öge Eksikliği) Soruları İçin:**
+        *   **Adım 1: İkinci Cümleyi Bağımsız Analiz Et.** Sıralı cümlenin ikinci kısmını (virgül veya noktalı virgülden sonrasını) tek başına bir cümle olarak ele al. Bu cümlenin yüklemine "Ne, Neyi, Kime, Nerede?" gibi soruları sorarak kendi içinde ögelerinin tam olup olmadığını kontrol et.
+        *   **Adım 2: Eksiklik Varsa Uyumluluğu Kontrol Et.** Eğer ikinci cümlenin bir ögesi eksikse, bu eksikliği ilk cümleden gidermeye çalışıp çalışmadığına bak. **EN KRİTİK KONTROL:** İlk cümleden alınmaya çalışılan ögenin **hal eki** (ismin -i, -e, -de, -den hali), ikinci cümlenin ihtiyaç duyduğu ögenin hal ekiyle %100 uyumlu mu? (Örn: İlk cümlenin dolaylı tümleci "-e hali" ise, ikinci cümlenin nesnesi "-i hali" olamaz).
+        *   **Adım 3: Gizli Tuzakları Değerlendir.** İlk cümlenin öznesinin, ikinci cümlenin nesnesi olarak kullanılması gibi durumlar genellikle anlatım bozukluğudur. Eğer ikinci cümlenin yüklemi nesne gerektiriyorsa (geçişli fiilse) ve bu nesne cümlede açıkça yoksa, bu bir kusurdur.
 
-        ### 3. Seçeneklerin Değerlendirilmesi ve Kesin Gerekçelerle Eleme
-        *   **Doğruyu/Yanlışı Tespit Et:** Yaptığın analize göre, kurala uyan veya uymayan seçeneği net bir şekilde belirle.
-        *   **Hatalı Seçenekleri Gerekçelendir:** Diğer seçeneklerin neden yanlış olduğunu, ilgili kuralı referans göstererek açıkla. Örnek: "B seçeneğindeki 'danışma' kelimesi, -ma isim-fiil ekini almasına rağmen artık bir eylem anlamını yitirip kalıcı bir isim olduğu için fiilimsi sayılmaz."
+    ### 3. Seçeneklerin Değerlendirilmesi ve Kesin Gerekçelerle Eleme
+    *   **Doğruyu/Yanlışı Tespit Et:** Yaptığın analize göre, kurala uyan veya uymayan seçeneği net bir şekilde belirle.
+    *   **Hatalı Seçenekleri Gerekçelendir:** Diğer seçeneklerin neden yanlış olduğunu, yukarıdaki adımları ve ilgili kuralı referans göstererek açıkla. Örnek: "B seçeneğinde ikinci yüklem 'bırakmamalısın' bir nesneye ihtiyaç duyar. İlk cümledeki 'hayatın dallarına' dolaylı tümleci, nesne olamaz. Bu nedenle nesne eksikliği vardır."
 
-        ### 4. Yapılandırılmış Yanıt
-        *   Cevabını **"1. Sorgulanan Dil Bilgisi Kuralının Tanımı"**, **"2. Seçenekler Üzerinde Kuralın Uygulamalı Analizi"** ve **"3. Doğru Cevap ve Diğer Seçeneklerin Elenme Gerekçeleri"** başlıkları altında, TDK kurallarını referans alarak adım adım ve kesin bir dille sun.`;
-        break;
+    ### 4. Yapılandırılmış Yanıt
+    *   Cevabını **"1. Sorgulanan Dil Bilgisi Kuralının Tanımı ve Özel Stratejisi"**, **"2. Seçenekler Üzerinde Kuralın Adım Adım Uygulanması"** ve **"3. Doğru Cevap ve Diğer Seçeneklerin Elenme Gerekçeleri"** başlıkları altında, TDK kurallarını referans alarak adım adım ve kesin bir dille sun.`;
+    break;
 
     case "ana_fikir_yardimci_fikir":
         specificInstruction = `
