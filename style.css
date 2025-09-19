@@ -26,16 +26,16 @@ body {
 header {
     background: var(--primary-color);
     color: #fff;
-    padding: 1.5rem 2rem;
-    text-align: left;
+    padding: 1.5rem 2rem; /* Padding biraz ayarlandı */
+    text-align: left; /* Metni sola yasladık, flex ile hizalayacağız */
     border-radius: var(--border-radius);
     margin-bottom: 2rem;
     box-shadow: var(--shadow);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: flex; /* Flexbox'ı etkinleştir */
+    justify-content: space-between; /* İçerikleri iki uca yay */
+    align-items: center; /* Dikeyde ortala */
+    flex-wrap: wrap; /* Küçük ekranlarda alt alta geçsin */
+    gap: 1rem; /* Elementler arasında boşluk */
 }
 
 .header-content { flex-grow: 1; }
@@ -44,7 +44,7 @@ header {
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: flex-start; /* Başlığı sola yasla */
     gap: 15px;
     font-weight: 700;
 }
@@ -60,16 +60,17 @@ header {
 }
 header p { font-size: 1rem; opacity: 0.8; }
 
+/* YENİ: Kullanıcı kontrol alanı için stil */
 .user-controls {
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Küçülmesini engelle */
 }
 
 .user-info {
     font-weight: 600;
-    white-space: nowrap;
+    white-space: nowrap; /* İsimlerin alt satıra geçmesini engelle */
 }
 
 main { display: grid; grid-template-columns: 1fr; gap: 2rem; }
@@ -128,14 +129,14 @@ textarea { min-height: 150px; resize: vertical; }
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    width: auto;
-    min-width: 150px;
+    width: auto; /* Genişliği otomatik ayarla */
+    min-width: 150px; /* Minimum genişlik */
     text-align: center;
     box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .primary-btn { background: linear-gradient(45deg, var(--accent-color), #2980b9); }
 .secondary-btn { background: var(--primary-color); border: 2px solid var(--accent-color); }
-#askTextQuestionBtn { width: 100%; }
+#askTextQuestionBtn { width: 100%; } /* Soru Sor butonu tam genişlikte kalsın */
 .primary-btn:hover, .secondary-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
@@ -238,5 +239,5 @@ footer p { margin: 5px 0; }
     h2 { font-size: 1.2rem; }
     textarea { min-height: 120px; }
     .modal-content { width: 95%; padding: 1rem; }
-    .user-controls { justify-content: center; }
+    .user-controls { justify-content: center; } /* Küçük ekranlarda butonları ortala */
 }
