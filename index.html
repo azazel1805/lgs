@@ -20,12 +20,11 @@
             </div>
             <!-- YENİ: Giriş/Çıkış ve Soru Geçmişi butonları için alan -->
             <div id="user-controls" class="user-controls">
-                <!-- JavaScript bu alanı dolduracak -->
+                <!-- JavaScript bu alanı dinamik olarak dolduracak -->
             </div>
         </header>
 
         <main>
-            <!-- Diğer bölümler aynı kalacak... -->
             <section class="lesson-selection-area card">
                 <h2>Konu Anlatımı</h2>
                 <div class="select-group">
@@ -77,22 +76,41 @@
         </main>
         
         <footer>
-            <!-- footer içeriği aynı kalacak... -->
+            <p>&copy; <span id="currentYear"></span> LGS AI Asistanı. Tüm hakları saklıdır.</p>
+            <p>LGS, 8. sınıf öğretim programları esas alınarak hazırlanmaktadır. Bilgiler referans amaçlıdır.</p>
         </footer>
     </div>
 
-    <!-- Soru Geçmişi Modalı (değişiklik yok) -->
+    <!-- Soru Geçmişi Modalı -->
     <div id="historyModal" class="modal-overlay" style="display: none;">
-        <!-- ... modal içeriği aynı kalacak ... -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Soru Geçmişi</h2>
+                <button id="closeHistoryModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-tabs">
+                    <button class="tab-btn active" data-tab="all">Tüm Geçmiş</button>
+                    <button class="tab-btn" data-tab="review">Tekrar Edilecekler</button>
+                </div>
+                <div id="historyContainer" class="history-container">
+                    <!-- Geçmiş sorular buraya JavaScript ile eklenecek -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Yanıt sonrası eylem butonları için şablon (değişiklik yok) -->
+    <!-- Yanıt sonrası eylem butonları için şablon -->
     <div id="actionButtonsTemplate" style="display: none;">
-        <!-- ... eylem butonları içeriği aynı kalacak ... -->
+        <div class="action-buttons">
+            <button class="action-btn" data-action="review">Tekrar Listeme Ekle</button>
+            <button class="action-btn" data-action="deepen">Konsepti Derinleştir</button>
+            <button class="action-btn" data-action="similar">Benzer Soru Üret</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
-    <!-- YENİ: Netlify Identity'yi sayfa yüklendikten sonra başlatma -->
+    <!-- YENİ: Netlify Identity'yi sayfa yüklendikten sonra başlatma ve yönlendirme -->
     <script>
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
