@@ -343,7 +343,7 @@ exports.handler = async function(event, context) {
         *   Cevabını başlıklar, alt başlıklar, madde işaretleri veya numaralı listeler kullanarak organize et.
         *   Önemli kavramları veya anahtar kelimeleri **kalın** yazarak vurgula. Bu, bilginin okunmasını ve akılda kalmasını kolaylaştırır.`;
         break;
-}
+
             }
             finalSystemInstruction = `${baseSystemInstruction}\n\n${specificInstruction}`;
         }
