@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Netlify Identity Entegrasyonu ---
     const updateUserUI = (user) => {
+        if (!userControls) return; // Eğer userControls elementi bulunamazsa hata vermemesi için
+        
         userControls.innerHTML = '';
         if (user) {
             userControls.innerHTML = `
@@ -52,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             document.getElementById('logoutBtn').addEventListener('click', () => netlifyIdentity.logout());
             document.getElementById('historyBtn').addEventListener('click', openHistoryModal);
-
+            
             // Kullanıcı giriş yaptı, soru sorma alanını aç
-            loginOverlay.style.display = 'none';
+            if (loginOverlay) loginOverlay.style.display = 'none';
             toggleQuestionArea(true);
 
         } else {
@@ -62,25 +64,37 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('loginBtn').addEventListener('click', () => netlifyIdentity.open());
 
             // Kullanıcı giriş yapmadı, soru sorma alanını kilitle
-            loginOverlay.style.display = 'flex';
+            if (loginOverlay) loginOverlay.style.display = 'flex';
             toggleQuestionArea(false);
         }
     };
     
     // Soru sorma alanını kilitleme/açma fonksiyonu
     const toggleQuestionArea = (isLoggedIn) => {
-        questionInput.disabled = !isLoggedIn;
-        detailsInput.disabled = !isLoggedIn;
-        askTextQuestionBtn.disabled = !isLoggedIn;
+        if (questionInput) questionInput.disabled = !isLoggedIn;
+        if (detailsInput) detailsInput.disabled = !isLoggedIn;
+        if (askTextQuestionBtn) askTextQuestionBtn.disabled = !isLoggedIn;
     };
 
-    netlifyIdentity.on('init', user => updateUserUI(user));
-    netlifyIdentity.on('login', user => {
-        updateUserUI(user);
-        netlifyIdentity.close();
-    });
-    netlifyIdentity.on('logout', () => updateUserUI(null));
+    // Netlify Identity'nin yüklenmesini bekle ve sonra başlat
+    if (window.netlifyIdentity) {
+        netlifyIdentity.on('init', user => updateUserUI(user));
+        netlifyIdentity.on('login', user => {
+            updateUserUI(user);
+            netlifyIdentity.close();
+        });
+        netlifyIdentity.on('logout', () => updateUserUI(null));
+    } else {
+        console.warn("Netlify Identity widget could not be found.");
+        // Eğer widget yüklenemezse, en azından soru sorma alanını kilitle
+        toggleQuestionArea(false);
+        if (loginOverlay) loginOverlay.style.display = 'flex';
+        if (userControls) userControls.innerHTML = '<p style="color: white; font-size: 0.9rem;">Giriş servisi yüklenemedi.</p>';
+    }
 
+    // --- Diğer Fonksiyonlar ve Olay Dinleyicileri ---
+    // ... (geri kalan tüm kod aynı kalacak) ...
+});
 
     // --- Render Fonksiyonları ---
     function renderHistory(tab = 'all') {
@@ -346,3 +360,4 @@ document.addEventListener('DOMContentLoaded', () => {
         askTextQuestionBtn.disabled = status;
     }
 });
+
