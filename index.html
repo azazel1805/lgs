@@ -8,8 +8,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%93</text></svg>">    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- YENİ: Netlify Identity Widget'ı için script etiketi -->
-    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
     <div class="container">
@@ -18,10 +16,7 @@
                 <h1><img src="https://img.icons8.com/plasticine/100/000000/graduation-cap.png" alt="LGS Logo" class="header-logo"> LGS AI Asistanı <span class="beta-tag">BETA</span></h1>
                 <p>8. Sınıf LGS Sözel Bölüm müfredatına uygun, yapay zeka destekli çalışma arkadaşın.</p>
             </div>
-            <!-- YENİ: Giriş/Çıkış ve Soru Geçmişi butonları için alan -->
-            <div id="user-controls" class="user-controls">
-                <!-- JavaScript bu alanı dinamik olarak dolduracak -->
-            </div>
+            <button id="historyBtn" class="secondary-btn">Soru Geçmişim</button>
         </header>
 
         <main>
@@ -50,15 +45,6 @@
             </section>
 
             <section class="ai-interaction-area card">
-                <!-- YENİ: Sadece giriş yapmayanlara gösterilecek overlay -->
-                <div id="login-overlay" style="display: none;">
-                    <div class="overlay-content">
-                        <h3>Bu Özelliği Kullanmak İçin Giriş Yapmalısınız</h3>
-                        <p>"Soru Çözümü" ve "Konsept Derinleştirme" gibi özelliklerden faydalanmak için lütfen bir hesap oluşturun veya giriş yapın.</p>
-                        <button id="overlayLoginBtn" class="primary-btn">Giriş Yap / Kayıt Ol</button>
-                    </div>
-                </div>
-
                 <h2>Soru Çözümü</h2>
                 
                 <div class="question-input-group">
@@ -83,10 +69,11 @@
                 </div>
             </section>
         </main>
-        
+
         <footer>
             <p>&copy; <span id="currentYear"></span> LGS AI Asistanı. Tüm hakları saklıdır.</p>
             <p>LGS, 8. sınıf öğretim programları esas alınarak hazırlanmaktadır. Bilgiler referans amaçlıdır.</p>
+            <p>Created by HOT</p>
         </footer>
     </div>
 
@@ -103,7 +90,7 @@
                     <button class="tab-btn" data-tab="review">Tekrar Edilecekler</button>
                 </div>
                 <div id="historyContainer" class="history-container">
-                    <!-- Geçmiş sorular buraya JavaScript ile eklenecek -->
+                    <!-- Geçmiş sorular buraya eklenecek -->
                 </div>
             </div>
         </div>
@@ -119,17 +106,6 @@
     </div>
 
     <script src="script.js"></script>
-    <!-- YENİ: Netlify Identity'yi sayfa yüklendikten sonra başlatma ve yönlendirme -->
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/";
-            });
-          }
-        });
-      }
-    </script>
 </body>
 </html>
+
