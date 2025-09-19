@@ -11,14 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const askTextQuestionBtn = document.getElementById('askTextQuestionBtn');
     const aiResponseOutput = document.getElementById('aiResponseOutput');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const userControls = document.getElementById('user-controls');
+    const historyBtn = document.getElementById('historyBtn');
     const historyModal = document.getElementById('historyModal');
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const historyContainer = document.getElementById('historyContainer');
     const historyTabs = document.querySelector('.history-tabs');
-    const loginOverlay = document.getElementById('login-overlay');
-    const overlayLoginBtn = document.getElementById('overlayLoginBtn');
-
 
     // --- Veri ---
     const lgsCurriculum = {
@@ -28,8 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "Din Kültürü ve Ahlâk Bilgisi": ["Kader İnancı", "Zekât ve Sadaka", "Din ve Hayat", "Hz. Muhammed'in Örnekliği", "Kur'an-ı Kerim ve Özellikleri"]
     };
 
-    let fullHistory = [];
-    let reviewList = [];
+    let fullHistory = JSON.parse(localStorage.getItem('lgsAiHistory')) || [];
+    let reviewList = JSON.parse(localStorage.getItem('lgsAiReviewList')) || [];
 
     // --- Başlangıç Ayarları ---
     document.getElementById('currentYear').textContent = new Date().getFullYear();
@@ -40,61 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = lesson;
         lessonSelect.appendChild(option);
     }
-    
-    // --- Netlify Identity Entegrasyonu ---
-    const updateUserUI = (user) => {
-        if (!userControls) return; // Eğer userControls elementi bulunamazsa hata vermemesi için
-        
-        userControls.innerHTML = '';
-        if (user) {
-            userControls.innerHTML = `
-                <div class="user-info">Hoş geldin, ${user.user_metadata.full_name || user.email.split('@')[0]}!</div>
-                <button id="historyBtn" class="secondary-btn">Soru Geçmişim</button>
-                <button id="logoutBtn" class="secondary-btn">Çıkış Yap</button>
-            `;
-            document.getElementById('logoutBtn').addEventListener('click', () => netlifyIdentity.logout());
-            document.getElementById('historyBtn').addEventListener('click', openHistoryModal);
-            
-            // Kullanıcı giriş yaptı, soru sorma alanını aç
-            if (loginOverlay) loginOverlay.style.display = 'none';
-            toggleQuestionArea(true);
 
-        } else {
-            userControls.innerHTML = '<button id="loginBtn" class="primary-btn">Giriş Yap / Kayıt Ol</button>';
-            document.getElementById('loginBtn').addEventListener('click', () => netlifyIdentity.open());
-
-            // Kullanıcı giriş yapmadı, soru sorma alanını kilitle
-            if (loginOverlay) loginOverlay.style.display = 'flex';
-            toggleQuestionArea(false);
-        }
-    };
-    
-    // Soru sorma alanını kilitleme/açma fonksiyonu
-    const toggleQuestionArea = (isLoggedIn) => {
-        if (questionInput) questionInput.disabled = !isLoggedIn;
-        if (detailsInput) detailsInput.disabled = !isLoggedIn;
-        if (askTextQuestionBtn) askTextQuestionBtn.disabled = !isLoggedIn;
-    };
-
-    // Netlify Identity'nin yüklenmesini bekle ve sonra başlat
-    if (window.netlifyIdentity) {
-        netlifyIdentity.on('init', user => updateUserUI(user));
-        netlifyIdentity.on('login', user => {
-            updateUserUI(user);
-            netlifyIdentity.close();
-        });
-        netlifyIdentity.on('logout', () => updateUserUI(null));
-    } else {
-        console.warn("Netlify Identity widget could not be found.");
-        // Eğer widget yüklenemezse, en azından soru sorma alanını kilitle
-        toggleQuestionArea(false);
-        if (loginOverlay) loginOverlay.style.display = 'flex';
-        if (userControls) userControls.innerHTML = '<p style="color: white; font-size: 0.9rem;">Giriş servisi yüklenemedi.</p>';
-    }
-
-    // --- Diğer Fonksiyonlar ve Olay Dinleyicileri ---
-    // ... (geri kalan tüm kod aynı kalacak) ...
-});
+    // --- localStorage Fonksiyonları ---
+    const saveHistory = () => localStorage.setItem('lgsAiHistory', JSON.stringify(fullHistory));
+    const saveReviewList = () => localStorage.setItem('lgsAiReviewList', JSON.stringify(reviewList));
 
     // --- Render Fonksiyonları ---
     function renderHistory(tab = 'all') {
@@ -109,11 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
         listToRender.slice().reverse().forEach(item => {
             const itemEl = document.createElement('div');
             itemEl.className = 'history-item';
-            // Cevapları ve soruları gösterirken Markdown'ı işlemek için marked.parse() kullan
-            const questionHtml = marked.parse(item.question.replace(/\[Kullanıcının belirttiği ek detaylar\/odak noktası: ".*"\]\n/, ''));
             itemEl.innerHTML = `
                 <h4>${item.lesson || 'Genel Soru'}</h4>
-                <div class="question-text">${questionHtml}</div>
+                <div class="question-text">${item.question}</div>
                 <div class="answer-text">${item.answer}</div>
                 <div class="item-footer">${new Date(item.timestamp).toLocaleString('tr-TR')}</div>
             `;
@@ -191,35 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
         questionInput.value = '';
         detailsInput.value = '';
     });
-    
-    // Modal Olayları
-    const openHistoryModal = async () => {
-        const user = netlifyIdentity.currentUser();
-        if (!user) {
-            alert("Soru geçmişini görmek için giriş yapmalısınız.");
-            return;
-        }
+
+    historyBtn.addEventListener('click', () => {
         historyModal.style.display = 'flex';
-        historyContainer.innerHTML = '<p class="placeholder">Geçmiş yükleniyor...</p>';
-        
-        try {
-            const response = await fetch('/.netlify/functions/get-history', {
-                headers: { 'Authorization': `Bearer ${user.token.access_token}` }
-            });
-            if (!response.ok) throw new Error('Geçmiş alınamadı.');
-            const data = await response.json();
-            fullHistory = data.history || [];
-            reviewList = data.history.filter(item => item.review) || [];
-            renderHistory('all');
-        } catch (error) {
-            historyContainer.innerHTML = `<p class="error-message">${error.message}</p>`;
-        }
-    };
+        renderHistory();
+    });
 
-    closeHistoryModal.addEventListener('click', () => { historyModal.style.display = 'none'; });
+    closeHistoryModal.addEventListener('click', () => {
+        historyModal.style.display = 'none';
+    });
     
-    overlayLoginBtn.addEventListener('click', () => netlifyIdentity.open());
-
     historyTabs.addEventListener('click', (e) => {
         if (e.target.classList.contains('tab-btn')) {
             document.querySelector('.tab-btn.active').classList.remove('active');
@@ -228,59 +153,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Eylem Butonları Olayları
+    // Eylem butonları için olay delegasyonu
     document.body.addEventListener('click', async (e) => {
         if (e.target.classList.contains('action-btn')) {
-            const user = netlifyIdentity.currentUser();
-            if (!user) {
-                alert('Bu özellikleri kullanmak için giriş yapmalısınız.');
-                netlifyIdentity.open();
-                return;
-            }
-
             const action = e.target.dataset.action;
             const outputArea = e.target.closest('.output-area');
-            
-            const questionData = {
-                question: outputArea.dataset.originalQuestion,
-                lesson: outputArea.dataset.originalLesson,
-                answer: outputArea.querySelector('.action-buttons').previousSibling.innerHTML || outputArea.innerHTML,
-                timestamp: parseInt(outputArea.dataset.timestamp)
-            };
-            
+            const originalQuestion = outputArea.dataset.originalQuestion;
+            const originalLesson = outputArea.dataset.originalLesson;
+
             if (action === 'review') {
-                e.target.textContent = 'Ekleniyor...';
-                e.target.disabled = true;
-                
-                try {
-                    const response = await fetch('/.netlify/functions/save-history', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${user.token.access_token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ...questionData, review: true })
-                    });
-                    if (!response.ok) throw new Error('Tekrar listesine eklenemedi.');
+                const lastQuestion = fullHistory[fullHistory.length - 1];
+                if (lastQuestion && !reviewList.find(item => item.timestamp === lastQuestion.timestamp)) {
+                    reviewList.push(lastQuestion);
+                    saveReviewList();
                     e.target.textContent = 'Tekrar Listesine Eklendi!';
                     e.target.classList.add('added');
-                } catch(error) {
-                    alert(error.message);
-                    e.target.textContent = 'Tekrar Listeme Ekle';
-                    e.target.disabled = false;
+                    e.target.disabled = true;
                 }
-
             } else if (action === 'deepen') {
                 await getGeminiResponse({
                     type: 'deepen_concept',
-                    prompt: questionData.question,
-                    lesson: questionData.lesson
+                    prompt: originalQuestion,
+                    lesson: originalLesson
                 }, outputArea);
             } else if (action === 'similar') {
                 await getGeminiResponse({
                     type: 'generate_similar',
-                    prompt: questionData.question,
-                    lesson: questionData.lesson
+                    prompt: originalQuestion,
+                    lesson: originalLesson
                 }, outputArea);
             }
         }
@@ -313,29 +213,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (payload.type === 'text') {
                     const timestamp = Date.now();
-                    const questionData = {
-                        question: payload.prompt,
-                        lesson: payload.lesson,
-                        answer: formattedHtml,
-                        timestamp: timestamp,
-                        review: false
-                    };
-                    
                     outputElement.dataset.timestamp = timestamp;
                     outputElement.dataset.originalQuestion = payload.prompt;
                     outputElement.dataset.originalLesson = payload.lesson;
                     
-                    const user = netlifyIdentity.currentUser();
-                    if (user) {
-                        fetch('/.netlify/functions/save-history', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${user.token.access_token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(questionData)
-                        }).catch(err => console.error("Geçmiş kaydedilemedi:", err));
-                    }
+                    fullHistory.push({
+                        question: payload.prompt,
+                        lesson: payload.lesson,
+                        answer: formattedHtml,
+                        timestamp: timestamp
+                    });
+                    saveHistory();
                     
                     const template = document.getElementById('actionButtonsTemplate').innerHTML;
                     outputElement.insertAdjacentHTML('beforeend', template);
@@ -349,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             disableControls(false);
         }
     }
-    
+
     function disableControls(status) {
         lessonSelect.disabled = status;
         unitSelect.disabled = status;
@@ -360,4 +248,3 @@ document.addEventListener('DOMContentLoaded', () => {
         askTextQuestionBtn.disabled = status;
     }
 });
-
