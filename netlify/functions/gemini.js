@@ -4,6 +4,19 @@ exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ message: 'Method Not Allowed' }) };
     }
+    
+    const { type, prompt, lesson, unit } = JSON.parse(event.body);
+    const { user } = context.clientContext;
+
+    // Güvenlik Kontrolü: Belirli istek tipleri için giriş yapmış kullanıcı gereklidir.
+    if (type === 'text' || type === 'deepen_concept' || type === 'generate_similar') {
+        if (!user) {
+            return {
+                statusCode: 401, // Unauthorized
+                body: JSON.stringify({ error: "Bu işlemi yapmak için giriş yapmalısınız." })
+            };
+        }
+    }
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
@@ -28,8 +41,6 @@ exports.handler = async function(event, context) {
     ];
 
     try {
-        const { type, prompt, lesson, unit } = JSON.parse(event.body);
-        
         const baseSystemInstruction = `
         **SENARYO:** Sen, LGS (Liselere Geçiş Sistemi) sözel bölümü sorularını çözme ve konularını açıklama konusunda uzman bir yapay zeka asistanısın. Görevin, sana verilen soruyu veya konuyu, LGS formatına ve 8. sınıf müfredatına %100 uygun, adım adım, pedagojik ve hatasız bir şekilde işlemektir. Cevapların bir öğrencinin konuyu tam olarak anlamasını sağlamalıdır. **Yanıtlarını Markdown formatında (**başlıklar için '### Başlık', kalın metin için '**kalın metin**', listeler için '* madde', strateji notları için '> **Strateji Notu:** ...' kullanarak**) oluştur.** Uygun olduğunda, dersler arası bağlantılar kurarak (örn: bir tarihsel olayın edebiyata yansıması) öğrencinin bütüncül bir bakış açısı kazanmasına yardımcı ol.
 
