@@ -1,16 +1,20 @@
 {
-  "name": "lgs-ai-assistant",
+  "name": "lgs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https:https://github.com/azazel1805/lgs.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "@google/generative-ai": "^0.12.0",
-    "@netlify/blobs": "^10.0.10"
+    "@google/generative-ai": "^0.24.1"
   }
 }
